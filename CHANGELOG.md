@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.3
+
+- Upgraded angstrom dependency.
+- Enabled automatic publishing.
+
 ## 0.0.2
 
 - Publish to GitHub.
