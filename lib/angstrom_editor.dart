@@ -1,0 +1,38 @@
+/// An editor for the [Angstrom](https://pub.dev/packages/angstrom) engine.
+library;
+
+export 'src/angstrom_editor.dart';
+export 'src/angstrom_event_types.dart';
+export 'src/asset_loading_angstrom_engine.dart';
+export 'src/constants.dart';
+export 'src/door_target.dart';
+export 'src/editor_code_generator.dart';
+export 'src/editor_context.dart';
+export 'src/editor_engine.dart';
+export 'src/editor_room_object_events.dart';
+export 'src/editor_room_surface_events.dart';
+export 'src/extensions.dart';
+export 'src/footsteps_sounds.dart';
+export 'src/json/editor_room.dart';
+export 'src/json/editor_room_object.dart';
+export 'src/json/editor_room_surface.dart';
+export 'src/loaded_room.dart';
+export 'src/loaded_room_events.dart';
+export 'src/room_code.dart';
+export 'src/screens/edit_door_screen.dart';
+export 'src/screens/edit_volume_screen.dart';
+export 'src/screens/go_to_coordinates_screen.dart';
+export 'src/screens/room_editor.dart';
+export 'src/screens/select_door_target_screen.dart';
+export 'src/screens/select_object_screen.dart';
+export 'src/screens/select_sound.dart';
+export 'src/shortcuts.dart';
+export 'src/widgets/editor_context_wrapper.dart';
+export 'src/widgets/editor_room_surface_list_tile.dart';
+export 'src/widgets/footsteps_play_sound_semantics.dart';
+export 'src/widgets/room_editor_page.dart';
+export 'src/widgets/room_object_list_tile.dart';
+export 'src/widgets/room_objects_page.dart';
+export 'src/widgets/room_surfaces_page.dart';
+export 'src/widgets/sound_reference_list_tile.dart';
+export 'src/widgets/sound_reference_text.dart';
