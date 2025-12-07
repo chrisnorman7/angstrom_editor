@@ -7,7 +7,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  angstrom: ^0.0.1
+  angstrom: ^0.0.2
   backstreets_widgets: ^0.37.0
   code_builder: ^4.11.0
   dart_style: ^3.1.3
