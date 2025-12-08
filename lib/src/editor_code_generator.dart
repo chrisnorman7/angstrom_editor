@@ -208,7 +208,7 @@ class EditorCodeGenerator {
   }
 
   /// Write room exports from [roomFiles].
-  void writeRoomExports(final Iterable<String> roomFiles) {
+  void _writeRoomExports(final Iterable<String> roomFiles) {
     final lib = Library((final lib) {
       lib.directives.addAll(roomFiles.map(Directive.export));
     });
@@ -223,7 +223,7 @@ class EditorCodeGenerator {
   /// Write the code for the custom engine.
   void writeEngineCode() {
     final roomCodeClasses = _writeRooms().toList();
-    writeRoomExports(
+    _writeRoomExports(
       roomCodeClasses.map((final roomCode) => roomCode.filename),
     );
     final loadedRoomEvents = refer(
