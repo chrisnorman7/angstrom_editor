@@ -390,7 +390,7 @@ class EditorCodeGenerator {
         );
     });
     final roomBuilders = roomCodeClasses.map(
-      (final roomCode) => RoomCodeBuilder.build(roomCode.room),
+      (final roomCode) => RoomCodeBuilder.generate(roomCode.room),
     );
     final engineBuilderClass = Class((final c) {
       c
@@ -406,32 +406,36 @@ class EditorCodeGenerator {
           Constructor((final c) {
             c
               ..docs.add('/// Create an instance.')
-              ..optionalParameters.addAll([
-                ...['playerCharacter', 'assetBundle'].map(
-                  (final name) => Parameter((final p) {
-                    p
-                      ..name = name
-                      ..toSuper = true
-                      ..required = true;
-                  }),
-                ),
-                ...roomBuilders.map(
+              ..optionalParameters.addAll(
+                roomBuilders.map(
                   (final builder) => Parameter((final p) {
+                    final roomBuilderClass = builder.roomBuilderClass;
+                    final roomClass = builder.roomClass;
+                    final classRefer = refer(roomClass.name);
+                    final builderRefer = refer(roomBuilderClass.name);
+                    final builderType = FunctionType((final f) {
+                      f
+                        ..returnType = classRefer
+                        ..requiredParameters.add(builderRefer);
+                    });
                     p
-                      ..name = builder.roomBuilderParameterName
-                      ..named = true
-                      ..required = true
-                      ..type = builder.builderType;
+                      ..name = roomClass.name
+                          .substring(
+                            RoomCodeBuilder.builderClassNamePrefix.length,
+                          )
+                          .camelCase
+                      ..docs.addAll([
+                        '/// Build metadata for the',
+                        '/// ${builder.room.editorRoom.name} room.',
+                      ])
+                      ..type = FunctionType((final f) {
+                        f
+                          ..returnType = classRefer
+                          ..requiredParameters.add(builderType);
+                      });
                   }),
                 ),
-              ])
-              ..initializers.addAll([
-                const Code('_roomEvents = {}'),
-                ...roomBuilders.map((final builder) {
-                  final name = builder.roomBuilderParameterName;
-                  return Code('_$name = $name');
-                }),
-              ]);
+              );
           }),
         )
         ..fields.addAll([
@@ -440,15 +444,6 @@ class EditorCodeGenerator {
               ..name = '_roomEvents'
               ..modifier = FieldModifier.final$
               ..type = roomEventsMap;
-          }),
-          ...roomBuilders.map((final builder) {
-            final name = builder.roomBuilderParameterName;
-            return Field((final f) {
-              f
-                ..name = '_$name'
-                ..modifier = FieldModifier.final$
-                ..type = refer(builder.roomBuilderClass.name);
-            });
           }),
         ])
         ..methods.add(
@@ -466,15 +461,7 @@ class EditorCodeGenerator {
     final lib = Library((final lib) {
       lib.body.addAll([
         engineClass,
-        for (final roomCode in roomCodeClasses)
-          ...() {
-            final builder = RoomCodeBuilder.build(roomCode.room);
-            return <Class>[
-              builder.roomBuilderClass,
-              ...builder.surfaceBuilderClasses,
-              ...builder.objectBuilderClasses,
-            ];
-          }(),
+        for (final roomBuilder in roomBuilders) ...roomBuilder.classes,
         engineBuilderClass,
       ]);
     });

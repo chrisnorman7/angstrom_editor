@@ -5,15 +5,18 @@ import 'package:recase/recase.dart';
 /// A class for generating room builder code.
 class RoomCodeBuilder {
   /// Create an instance.
-  RoomCodeBuilder({
+  RoomCodeBuilder._({
     required this.room,
+    required this.roomClass,
     required this.roomBuilderClass,
+    required this.surfaceClasses,
     required this.surfaceBuilderClasses,
+    required this.objectClasses,
     required this.objectBuilderClasses,
   });
 
-  /// Build the code for [room].
-  factory RoomCodeBuilder.build(final LoadedRoom room) {
+  /// Generate the code for [room].
+  factory RoomCodeBuilder.generate(final LoadedRoom room) {
     final angstromCallback = refer(
       'AngstromCallback',
       'package:angstrom/angstrom.dart',
@@ -21,103 +24,178 @@ class RoomCodeBuilder {
     final editorRoom = room.editorRoom;
     final roomClassName = editorRoom.name.pascalCase;
     final classNamePrefix = '$builderClassNamePrefix$roomClassName';
-    final surfaceBuilderClasses = [
-      for (var i = 0; i < editorRoom.surfaces.length; i++)
-        if (editorRoom.surfaces[i].events.isNotEmpty)
-          Class((final c) {
-            final surface = editorRoom.surfaces[i];
-            c
-              ..name = '$classNamePrefix${surface.name.pascalCase}Surface'
-              ..docs.add(
-                '/// The events for the ${surface.name} surface of the ${editorRoom.name} room.',
-              )
-              ..constructors.add(
-                Constructor((final c) {
-                  c
-                    ..constant = true
-                    ..docs.add('/// Create an instance.')
-                    ..optionalParameters.addAll(
-                      surface.events.map(
-                        (final event) => Parameter((final p) {
-                          p
-                            ..name = event.name
-                            ..named = true
-                            ..required = true
-                            ..toThis = true;
-                        }),
-                      ),
-                    );
-                }),
-              )
-              ..fields.addAll(
-                surface.events.map(
-                  (final event) => Field((final f) {
-                    f
-                      ..name = event.name
-                      ..docs.add('/// The ${event.name} event.')
-                      ..modifier = FieldModifier.final$
-                      ..type = angstromCallback;
-                  }),
-                ),
-              );
-          }),
-    ];
-    final objectBuilderClasses = [
-      for (var i = 0; i < editorRoom.objects.length; i++)
-        if (editorRoom.objects[i].events
-            .where(
-              (final e) =>
-                  e != AngstromEventTypes.onActivate ||
-                  editorRoom.objects[i].door == null,
+    final surfaceClasses = <Class>[];
+    final surfaceBuilderClasses = <Class>[];
+    for (final surface in editorRoom.surfaces) {
+      if (surface.events.isNotEmpty) {
+        final surfaceClass = Class((final c) {
+          c
+            ..name = '$classNamePrefix${surface.name.pascalCase}Surface'
+            ..docs.add('/// Events for the ${surface.name} surface.')
+            ..constructors.add(
+              Constructor((final c) {
+                c
+                  ..constant = true
+                  ..docs.add('/// Create an instance.')
+                  ..optionalParameters.addAll(
+                    surface.events.map(
+                      (final event) => Parameter((final p) {
+                        p
+                          ..name = event.name
+                          ..named = true
+                          ..required = true
+                          ..toThis = true;
+                      }),
+                    ),
+                  );
+              }),
             )
-            .isNotEmpty)
-          Class((final c) {
-            final object = editorRoom.objects[i];
-            final door = object.door;
-            final events = object.events.where(
-              (final e) => e != AngstromEventTypes.onActivate || door == null,
+            ..fields.addAll(
+              surface.events.map(
+                (final event) => Field((final f) {
+                  f
+                    ..name = event.name
+                    ..docs.add('/// The `${event.name}` event.')
+                    ..modifier = FieldModifier.final$
+                    ..type = angstromCallback;
+                }),
+              ),
             );
+        });
+        surfaceClasses.add(surfaceClass);
+        surfaceBuilderClasses.add(
+          Class((final c) {
             c
-              ..name = '$classNamePrefix${object.name.pascalCase}Object'
-              ..docs.add(
-                '/// Events for the ${object.name} object in the ${editorRoom.name} room.',
-              )
+              ..name = '${surfaceClass.name}Builder'
               ..constructors.add(
                 Constructor((final c) {
                   c
                     ..constant = true
-                    ..docs.add('/// Create an instance.')
-                    ..optionalParameters.addAll(
-                      events.map(
-                        (final event) => Parameter((final p) {
-                          p
-                            ..name = event.name
-                            ..named = true
-                            ..required = true
-                            ..toThis = true;
-                        }),
-                      ),
-                    );
+                    ..docs.add('/// Create an instance.');
                 }),
               )
-              ..fields.addAll(
-                events.map(
-                  (final event) => Field((final f) {
-                    f
-                      ..name = event.name
-                      ..docs.add('/// The ${event.name} event.')
-                      ..modifier = FieldModifier.final$
-                      ..type = angstromCallback;
-                  }),
-                ),
+              ..methods.add(
+                Method((final m) {
+                  m
+                    ..name = 'call'
+                    ..body = Code.scope((final allocate) {
+                      final buffer = StringBuffer()
+                        ..writeln('return ${surfaceClass.name}(');
+                      for (final field in surfaceClass.fields) {
+                        buffer.writeln('${field.name}: ${field.name},');
+                      }
+                      buffer.writeln(');');
+                      return buffer.toString();
+                    })
+                    ..optionalParameters.addAll(
+                      surfaceClass.fields.map(
+                        (final f) => Parameter((final p) {
+                          p
+                            ..name = f.name
+                            ..docs.addAll(f.docs)
+                            ..named = true
+                            ..required = true
+                            ..type = f.type;
+                        }),
+                      ),
+                    )
+                    ..returns = refer(surfaceClass.name);
+                }),
               );
           }),
-    ];
-    final roomBuilderClass = Class((final c) {
+        );
+      }
+    }
+    final objectClasses = <Class>[];
+    final objectBuilderClasses = <Class>[];
+    for (final object in editorRoom.objects) {
+      final events = object.events.where(
+        (final e) => e != AngstromEventTypes.onActivate || object.door == null,
+      );
+      if (events.isNotEmpty) {
+        final objectClass = Class((final c) {
+          c
+            ..name = '$classNamePrefix${object.name.pascalCase}Object'
+            ..docs.add('/// Events for the ${object.name} object.')
+            ..constructors.add(
+              Constructor((final c) {
+                c
+                  ..constant = true
+                  ..docs.add('/// Create an instance.')
+                  ..optionalParameters.addAll(
+                    events.map(
+                      (final event) => Parameter((final p) {
+                        p
+                          ..name = event.name
+                          ..named = true
+                          ..required = true
+                          ..toThis = true;
+                      }),
+                    ),
+                  );
+              }),
+            )
+            ..fields.addAll(
+              events.map(
+                (final event) => Field((final f) {
+                  f
+                    ..name = event.name
+                    ..docs.add('/// The `${event.name}` event.')
+                    ..modifier = FieldModifier.final$
+                    ..type = angstromCallback;
+                }),
+              ),
+            );
+        });
+        objectClasses.add(objectClass);
+        objectBuilderClasses.add(
+          Class((final c) {
+            c
+              ..name = '${objectClass.name}Builder'
+              ..constructors.add(
+                Constructor((final c) {
+                  c
+                    ..constant = true
+                    ..docs.add('/// Create an instance.');
+                }),
+              )
+              ..methods.add(
+                Method((final m) {
+                  m
+                    ..name = 'call'
+                    ..body = Code.scope((final allocate) {
+                      final buffer = StringBuffer()
+                        ..writeln('return ${objectClass.name}(');
+                      for (final field in objectClass.fields) {
+                        buffer.writeln('${field.name}: ${field.name},');
+                      }
+                      buffer.writeln(');');
+                      return buffer.toString();
+                    })
+                    ..optionalParameters.addAll(
+                      objectClass.fields.map(
+                        (final f) => Parameter((final p) {
+                          p
+                            ..name = f.name
+                            ..docs.addAll(f.docs)
+                            ..named = true
+                            ..required = true
+                            ..type = f.type;
+                        }),
+                      ),
+                    )
+                    ..returns = refer(objectClass.name);
+                }),
+              );
+          }),
+        );
+      }
+    }
+    final roomClass = Class((final c) {
       c
-        ..name = '${classNamePrefix}RoomBuilder'
+        ..name = classNamePrefix
         ..docs.addAll([
-          '/// A class which will build object and surface events for the',
+          '/// Holds metadata about the',
           '/// ${editorRoom.name} room.',
         ])
         ..constructors.add(
@@ -126,12 +204,13 @@ class RoomCodeBuilder {
               ..constant = true
               ..docs.add('/// Create an instance.')
               ..optionalParameters.addAll(
-                [...surfaceBuilderClasses, ...objectBuilderClasses].map(
-                  (final builderClass) => Parameter((final p) {
+                [...surfaceClasses, ...objectClasses].map(
+                  (final c) => Parameter((final p) {
+                    final friendlyName = c.name
+                        .substring(classNamePrefix.length)
+                        .camelCase;
                     p
-                      ..name = builderClass.name
-                          .substring(builderClassNamePrefix.length)
-                          .camelCase
+                      ..name = friendlyName
                       ..named = true
                       ..required = true
                       ..toThis = true;
@@ -141,23 +220,73 @@ class RoomCodeBuilder {
           }),
         )
         ..fields.addAll(
-          [...surfaceBuilderClasses, ...objectBuilderClasses].map(
-            (final builderClass) => Field((final f) {
+          [...surfaceClasses, ...objectClasses].map(
+            (final c) => Field((final f) {
+              final friendlyName = c.name
+                  .substring(classNamePrefix.length)
+                  .camelCase;
               f
-                ..name = builderClass.name
-                    .substring(builderClassNamePrefix.length)
-                    .camelCase
-                ..docs.add('/// Contains events for a surface or object.')
+                ..name = friendlyName
+                ..docs.add('/// Metadata about a surface or object.')
                 ..modifier = FieldModifier.final$
-                ..type = refer(builderClass.name);
+                ..type = refer(c.name);
             }),
           ),
         );
     });
-    return RoomCodeBuilder(
+    final roomBuilderClass = Class((final c) {
+      c
+        ..name = '${classNamePrefix}RoomBuilder'
+        ..constructors.add(
+          Constructor((final c) {
+            c
+              ..constant = true
+              ..docs.add('/// Create an instance.');
+          }),
+        )
+        ..methods.add(
+          Method((final m) {
+            m
+              ..name = 'call'
+              ..body = Code.scope((final allocate) {
+                final buffer = StringBuffer()
+                  ..writeln('return $classNamePrefix(');
+                for (final field in roomClass.fields) {
+                  buffer.writeln('${field.name}: ${field.name},');
+                }
+                buffer.writeln(');');
+                return buffer.toString();
+              })
+              ..optionalParameters.addAll(
+                [...surfaceClasses, ...objectClasses].map(
+                  (final c) => Parameter((final p) {
+                    final friendlyName = c.name
+                        .substring(classNamePrefix.length)
+                        .camelCase;
+                    final classRefer = refer(c.name);
+                    final builderRefer = refer('${c.name}Builder');
+                    p
+                      ..name = friendlyName
+                      ..named = true
+                      ..required = true
+                      ..type = FunctionType((final f) {
+                        f
+                          ..returnType = classRefer
+                          ..requiredParameters.add(builderRefer);
+                      });
+                  }),
+                ),
+              );
+          }),
+        );
+    });
+    return RoomCodeBuilder._(
       room: room,
+      roomClass: roomClass,
       roomBuilderClass: roomBuilderClass,
+      surfaceClasses: surfaceClasses,
       surfaceBuilderClasses: surfaceBuilderClasses,
+      objectClasses: objectClasses,
       objectBuilderClasses: objectBuilderClasses,
     );
   }
@@ -168,26 +297,35 @@ class RoomCodeBuilder {
   /// The room to use.
   final LoadedRoom room;
 
+  /// The [room] class.
+  final Class roomClass;
+
   /// The [room] builder class.
   final Class roomBuilderClass;
 
-  /// The type of [roomBuilderClass].
-  Reference get _roomBuilderType => refer(roomBuilderClass.name);
-
-  /// The name of parameters and fields of type [roomBuilderClass].
+  /// The name of parameters and fields of type [roomClass].
   String get roomBuilderParameterName =>
       roomBuilderClass.name.substring(builderClassNamePrefix.length).camelCase;
 
-  /// The type of the [roomBuilderClass] builder.
-  FunctionType get builderType => FunctionType((final f) {
-    f
-      ..requiredParameters.add(_roomBuilderType)
-      ..returnType = _roomBuilderType;
-  });
+  /// The data classes for all [room] surfaces.
+  final List<Class> surfaceClasses;
 
-  /// The classes for all [room] surface builders.
+  /// The classes for all [room] surfaces surface builders.
   final List<Class> surfaceBuilderClasses;
+
+  /// The data classes for all [room] classes.
+  final List<Class> objectClasses;
 
   /// The classes for all [room] object builders.
   final List<Class> objectBuilderClasses;
+
+  /// Get all the classes in this builder.
+  Iterable<Class> get classes => [
+    roomClass,
+    roomBuilderClass,
+    ...surfaceClasses,
+    ...surfaceBuilderClasses,
+    ...objectClasses,
+    ...objectBuilderClasses,
+  ];
 }
