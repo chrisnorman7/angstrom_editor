@@ -116,9 +116,10 @@ class RoomCodeBuilder {
     final roomBuilderClass = Class((final c) {
       c
         ..name = '${classNamePrefix}RoomBuilder'
-        ..docs.add(
-          '/// A class which will build object and surface events for the ${editorRoom.name} room.',
-        )
+        ..docs.addAll([
+          '/// A class which will build object and surface events for the',
+          '/// ${editorRoom.name} room.',
+        ])
         ..constructors.add(
           Constructor((final c) {
             c
@@ -171,11 +172,18 @@ class RoomCodeBuilder {
   final Class roomBuilderClass;
 
   /// The type of [roomBuilderClass].
-  Reference get roomBuilderType => refer(roomBuilderClass.name);
+  Reference get _roomBuilderType => refer(roomBuilderClass.name);
 
   /// The name of parameters and fields of type [roomBuilderClass].
   String get roomBuilderParameterName =>
-      roomBuilderClass.name.substring(builderClassNamePrefix.length);
+      roomBuilderClass.name.substring(builderClassNamePrefix.length).camelCase;
+
+  /// The type of the [roomBuilderClass] builder.
+  FunctionType get builderType => FunctionType((final f) {
+    f
+      ..requiredParameters.add(_roomBuilderType)
+      ..returnType = _roomBuilderType;
+  });
 
   /// The classes for all [room] surface builders.
   final List<Class> surfaceBuilderClasses;

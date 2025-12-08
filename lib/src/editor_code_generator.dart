@@ -227,23 +227,31 @@ class EditorCodeGenerator {
     _writeRoomExports(
       roomCodeClasses.map((final roomCode) => roomCode.filename),
     );
-    final loadedRoomEvents = refer(
-      'LoadedRoomEvents',
-      'package:angstrom_editor/angstrom_editor.dart',
+    const angstromEditorPackage =
+        'package:angstrom_editor/angstrom_editor.dart';
+    final loadedRoomEvents = refer('LoadedRoomEvents', angstromEditorPackage);
+    final roomEventsMap = TypeReference((final t) {
+      t
+        ..symbol = 'Map'
+        ..types.addAll([refer('String'), loadedRoomEvents]);
+    });
+    final engineClassName = path
+        .basenameWithoutExtension(engineCodePath)
+        .pascalCase;
+    final assetLoadingEngine = refer(
+      'AssetLoadingAngstromEngine',
+      angstromEditorPackage,
     );
     final engineClass = Class((final c) {
       c
-        ..name = path.basenameWithoutExtension(engineCodePath).pascalCase
+        ..name = engineClassName
         ..docs.addAll([
           '/// The custom engine for your game.',
           '///',
           '/// This class will ensure that your custom callbacks can be loaded in a',
           '/// completely type safe manner.',
         ])
-        ..extend = refer(
-          'AssetLoadingAngstromEngine',
-          'package:angstrom_editor/angstrom_editor.dart',
-        )
+        ..extend = assetLoadingEngine
         ..constructors.add(
           Constructor((final c) {
             c
@@ -295,11 +303,7 @@ class EditorCodeGenerator {
               ..annotations.add(refer('override'))
               ..name = 'roomEvents'
               ..docs.add('/// Provides the properties created by code gen.')
-              ..returns = TypeReference((final t) {
-                t
-                  ..symbol = 'Map'
-                  ..types.addAll([refer('String'), loadedRoomEvents]);
-              })
+              ..returns = roomEventsMap
               ..type = MethodType.getter
               ..body = Code.scope((final allocate) {
                 final buffer = StringBuffer()..writeln('return {');
@@ -328,7 +332,7 @@ class EditorCodeGenerator {
                       )
                       ..writeln(
                         // ignore: lines_longer_than_80_chars
-                        '${allocate(refer('EditorRoomSurfaceEvents', 'package:angstrom_editor/angstrom_editor.dart'))}(',
+                        '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
                       );
                     for (final event in surface.events) {
                       buffer
@@ -360,7 +364,7 @@ class EditorCodeGenerator {
                       )
                       ..writeln(
                         // ignore: lines_longer_than_80_chars
-                        '${allocate(refer('EditorRoomObjectEvents', 'package:angstrom_editor/angstrom_editor.dart'))}(',
+                        '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
                       );
                     for (final event in events) {
                       buffer
@@ -385,19 +389,19 @@ class EditorCodeGenerator {
           }),
         );
     });
+    final roomBuilders = roomCodeClasses.map(
+      (final roomCode) => RoomCodeBuilder.build(roomCode.room),
+    );
     final engineBuilderClass = Class((final c) {
       c
-        ..name = '${engineClass.name}Builder'
+        ..name = '${engineClassName}Builder'
         ..docs.addAll([
           '/// Build an engine for your game.',
           '///',
           '/// This class will ensure that your custom callbacks can be loaded in a',
           '/// completely type safe manner.',
         ])
-        ..extend = refer(
-          'AssetLoadingAngstromEngine',
-          'package:angstrom_editor/angstrom_editor.dart',
-        )
+        ..extend = assetLoadingEngine
         ..constructors.add(
           Constructor((final c) {
             c
@@ -411,39 +415,51 @@ class EditorCodeGenerator {
                       ..required = true;
                   }),
                 ),
-                ...roomCodeClasses.map((final roomCode) {
-                  final room = roomCode.room;
-                  final builder = RoomCodeBuilder.build(room);
-                  return Parameter((final p) {
+                ...roomBuilders.map(
+                  (final builder) => Parameter((final p) {
                     p
                       ..name = builder.roomBuilderParameterName
                       ..named = true
                       ..required = true
-                      ..toThis = true
-                      ..type = FunctionType((final f) {
-                        f
-                          ..requiredParameters.add(builder.roomBuilderType)
-                          ..returnType = builder.roomBuilderType;
-                      });
-                  });
+                      ..type = builder.builderType;
+                  }),
+                ),
+              ])
+              ..initializers.addAll([
+                const Code('_roomEvents = {}'),
+                ...roomBuilders.map((final builder) {
+                  final name = builder.roomBuilderParameterName;
+                  return Code('_$name = $name');
                 }),
               ]);
           }),
         )
-        ..fields.addAll(
-          roomCodeClasses.map((final roomCode) {
-            final room = roomCode.room;
-            final editorRoom = room.editorRoom;
-            final builder = RoomCodeBuilder.build(room);
+        ..fields.addAll([
+          Field((final m) {
+            m
+              ..name = '_roomEvents'
+              ..modifier = FieldModifier.final$
+              ..type = roomEventsMap;
+          }),
+          ...roomBuilders.map((final builder) {
+            final name = builder.roomBuilderParameterName;
             return Field((final f) {
               f
-                ..name = builder.roomBuilderParameterName
-                ..docs.add(
-                  '/// Events for ${editorRoom.name}. Used by [buildRoom].',
-                )
+                ..name = '_$name'
                 ..modifier = FieldModifier.final$
-                ..type = builder.roomBuilderType;
+                ..type = refer(builder.roomBuilderClass.name);
             });
+          }),
+        ])
+        ..methods.add(
+          Method((final m) {
+            m
+              ..annotations.add(refer('override'))
+              ..name = 'roomEvents'
+              ..docs.add('/// The events which the engine knows about.')
+              ..body = const Code('return _roomEvents;')
+              ..returns = roomEventsMap
+              ..type = MethodType.getter;
           }),
         );
     });
