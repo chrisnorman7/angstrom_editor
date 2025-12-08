@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:angstrom_editor/angstrom_editor.dart';
+import 'package:angstrom_editor/src/room_code_builder.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as path;
@@ -384,8 +385,82 @@ class EditorCodeGenerator {
           }),
         );
     });
+    final engineBuilderClass = Class((final c) {
+      c
+        ..name = '${engineClass.name}Builder'
+        ..docs.addAll([
+          '/// Build an engine for your game.',
+          '///',
+          '/// This class will ensure that your custom callbacks can be loaded in a',
+          '/// completely type safe manner.',
+        ])
+        ..extend = refer(
+          'AssetLoadingAngstromEngine',
+          'package:angstrom_editor/angstrom_editor.dart',
+        )
+        ..constructors.add(
+          Constructor((final c) {
+            c
+              ..docs.add('/// Create an instance.')
+              ..optionalParameters.addAll([
+                ...['playerCharacter', 'assetBundle'].map(
+                  (final name) => Parameter((final p) {
+                    p
+                      ..name = name
+                      ..toSuper = true
+                      ..required = true;
+                  }),
+                ),
+                ...roomCodeClasses.map((final roomCode) {
+                  final room = roomCode.room;
+                  final builder = RoomCodeBuilder.build(room);
+                  return Parameter((final p) {
+                    p
+                      ..name = builder.roomBuilderParameterName
+                      ..named = true
+                      ..required = true
+                      ..toThis = true
+                      ..type = FunctionType((final f) {
+                        f
+                          ..requiredParameters.add(builder.roomBuilderType)
+                          ..returnType = builder.roomBuilderType;
+                      });
+                  });
+                }),
+              ]);
+          }),
+        )
+        ..fields.addAll(
+          roomCodeClasses.map((final roomCode) {
+            final room = roomCode.room;
+            final editorRoom = room.editorRoom;
+            final builder = RoomCodeBuilder.build(room);
+            return Field((final f) {
+              f
+                ..name = builder.roomBuilderParameterName
+                ..docs.add(
+                  '/// Events for ${editorRoom.name}. Used by [buildRoom].',
+                )
+                ..modifier = FieldModifier.final$
+                ..type = builder.roomBuilderType;
+            });
+          }),
+        );
+    });
     final lib = Library((final lib) {
-      lib.body.add(engineClass);
+      lib.body.addAll([
+        engineClass,
+        for (final roomCode in roomCodeClasses)
+          ...() {
+            final builder = RoomCodeBuilder.build(roomCode.room);
+            return <Class>[
+              builder.roomBuilderClass,
+              ...builder.surfaceBuilderClasses,
+              ...builder.objectBuilderClasses,
+            ];
+          }(),
+        engineBuilderClass,
+      ]);
     });
     final emitter = DartEmitter.scoped();
     final dart = lib.accept(emitter);
