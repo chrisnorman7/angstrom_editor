@@ -1,5 +1,5 @@
 import 'package:angstrom/angstrom.dart';
-import 'package:angstrom_editor/src/constants.dart';
+import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';

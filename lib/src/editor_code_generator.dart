@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:angstrom_editor/angstrom_editor.dart';
-import 'package:angstrom_editor/src/room_code_builder.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as path;
@@ -304,9 +303,10 @@ class EditorCodeGenerator {
               ..name = 'roomEvents'
               ..docs.add('/// Provides the properties created by code gen.')
               ..returns = roomEventsMap
+              ..lambda = true
               ..type = MethodType.getter
               ..body = Code.scope((final allocate) {
-                final buffer = StringBuffer()..writeln('return {');
+                final buffer = StringBuffer()..writeln('{');
                 for (var i = 0; i < rooms.length; i++) {
                   final roomCode = roomCodeClasses[i];
                   final room = roomCode.room;
@@ -318,7 +318,8 @@ class EditorCodeGenerator {
                     roomClass.name.length - base.length,
                   );
                   buffer
-                    ..writeln('${literalString(roomId)}: // ${editorRoom.name}')
+                    ..writeln('// ${editorRoom.name} events.')
+                    ..writeln('${literalString(roomId)}:')
                     ..writeln('${allocate(loadedRoomEvents)}(')
                     ..writeln('surfaceEvents: {');
                   for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
@@ -383,87 +384,14 @@ class EditorCodeGenerator {
                   }
                   buffer.writeln('),');
                 }
-                buffer.writeln('};');
+                buffer.writeln('}');
                 return buffer.toString();
               });
           }),
         );
     });
-    final roomBuilders = roomCodeClasses.map(
-      (final roomCode) => RoomCodeBuilder.generate(roomCode.room),
-    );
-    final engineBuilderClass = Class((final c) {
-      c
-        ..name = '${engineClassName}Builder'
-        ..docs.addAll([
-          '/// Build an engine for your game.',
-          '///',
-          '/// This class will ensure that your custom callbacks can be loaded in a',
-          '/// completely type safe manner.',
-        ])
-        ..extend = assetLoadingEngine
-        ..constructors.add(
-          Constructor((final c) {
-            c
-              ..docs.add('/// Create an instance.')
-              ..optionalParameters.addAll(
-                roomBuilders.map(
-                  (final builder) => Parameter((final p) {
-                    final roomBuilderClass = builder.roomBuilderClass;
-                    final roomClass = builder.roomClass;
-                    final classRefer = refer(roomClass.name);
-                    final builderRefer = refer(roomBuilderClass.name);
-                    final builderType = FunctionType((final f) {
-                      f
-                        ..returnType = classRefer
-                        ..requiredParameters.add(builderRefer);
-                    });
-                    p
-                      ..name = roomClass.name
-                          .substring(
-                            RoomCodeBuilder.builderClassNamePrefix.length,
-                          )
-                          .camelCase
-                      ..docs.addAll([
-                        '/// Build metadata for the',
-                        '/// ${builder.room.editorRoom.name} room.',
-                      ])
-                      ..type = FunctionType((final f) {
-                        f
-                          ..returnType = classRefer
-                          ..requiredParameters.add(builderType);
-                      });
-                  }),
-                ),
-              );
-          }),
-        )
-        ..fields.addAll([
-          Field((final m) {
-            m
-              ..name = '_roomEvents'
-              ..modifier = FieldModifier.final$
-              ..type = roomEventsMap;
-          }),
-        ])
-        ..methods.add(
-          Method((final m) {
-            m
-              ..annotations.add(refer('override'))
-              ..name = 'roomEvents'
-              ..docs.add('/// The events which the engine knows about.')
-              ..body = const Code('return _roomEvents;')
-              ..returns = roomEventsMap
-              ..type = MethodType.getter;
-          }),
-        );
-    });
     final lib = Library((final lib) {
-      lib.body.addAll([
-        engineClass,
-        for (final roomBuilder in roomBuilders) ...roomBuilder.classes,
-        engineBuilderClass,
-      ]);
+      lib.body.add(engineClass);
     });
     final emitter = DartEmitter.scoped();
     final dart = lib.accept(emitter);

@@ -1,8 +1,7 @@
 import 'dart:math';
 
-import 'package:angstrom/angstrom.dart' show RoomObject, SoundReference;
-import 'package:angstrom_editor/src/angstrom_event_types.dart';
-import 'package:angstrom_editor/src/json/editor_door.dart';
+import 'package:angstrom/angstrom.dart';
+import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'editor_room_object.g.dart';

@@ -1,6 +1,5 @@
 import 'package:angstrom/typedefs.dart';
-import 'package:angstrom_editor/angstrom_editor.dart' show EditorRoomObject;
-import 'package:angstrom_editor/src/json/editor_room_object.dart';
+import 'package:angstrom_editor/angstrom_editor.dart';
 
 /// Events for [EditorRoomObject]s.
 class EditorRoomObjectEvents {

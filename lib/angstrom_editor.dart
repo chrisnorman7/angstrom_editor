@@ -13,6 +13,7 @@ export 'src/editor_room_object_events.dart';
 export 'src/editor_room_surface_events.dart';
 export 'src/extensions.dart';
 export 'src/footsteps_sounds.dart';
+export 'src/json/editor_door.dart';
 export 'src/json/editor_room.dart';
 export 'src/json/editor_room_object.dart';
 export 'src/json/editor_room_surface.dart';
