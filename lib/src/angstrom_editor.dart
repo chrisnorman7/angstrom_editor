@@ -48,6 +48,7 @@ class AngstromEditor extends StatefulWidget {
     this.getExamineObjectOrdering = defaultGetExamineObjectOrdering,
     this.onNoRoomObjects = defaultNoRoomObjects,
     this.volumeChangeAmount = 0.1,
+    this.buildCompleteSound,
     super.key,
   }) : assert(
          footsteps.length > 0,
@@ -110,6 +111,9 @@ class AngstromEditor extends StatefulWidget {
 
   /// The amount to change sound volumes by.
   final double volumeChangeAmount;
+
+  /// The sound to play when code generation is complete.
+  final Sound? buildCompleteSound;
 
   /// Create state for this widget.
   @override
@@ -386,6 +390,7 @@ class AngstromEditorState extends State<AngstromEditor> {
     );
     final source = encoder.convert(room.toJson());
     file.writeAsStringSync(source);
+    context.maybePlaySound(widget.buildCompleteSound);
     setState(() {});
   }
 }
