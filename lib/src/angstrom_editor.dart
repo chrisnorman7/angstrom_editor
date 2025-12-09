@@ -362,6 +362,7 @@ class AngstromEditorState extends State<AngstromEditor> {
       codeDirectory: codeDirectory,
       engineCodePath: widget.engineCodePath,
     ).writeEngineCode();
+    context.maybePlaySound(widget.buildCompleteSound);
   }
 
   /// Create a new room.
@@ -390,7 +391,6 @@ class AngstromEditorState extends State<AngstromEditor> {
     );
     final source = encoder.convert(room.toJson());
     file.writeAsStringSync(source);
-    context.maybePlaySound(widget.buildCompleteSound);
     setState(() {});
   }
 }
