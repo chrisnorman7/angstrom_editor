@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.1.0
+## 0.0.4
 
-- When writing code, also write a `EngineBuilder` class.
+- Code cleanup.
 
 ## 0.0.3
 
