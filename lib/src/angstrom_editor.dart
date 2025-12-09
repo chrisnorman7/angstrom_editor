@@ -319,40 +319,45 @@ class AngstromEditorState extends State<AngstromEditor> {
         shrinkWrap: true,
       );
     }
-    return CallbackShortcuts(
-      bindings: {
-        saveShortcut: () {
-          EditorCodeGenerator(
-            rooms: rooms,
-            codeDirectory: codeDirectory,
-            engineCodePath: widget.engineCodePath,
-          ).writeEngineCode();
-        },
-        newShortcut: _newRoom,
-      },
-      child: SimpleScaffold(
-        title: widget.title,
-        actions: [
-          SaveButton(
-            onPressed: () {
-              EditorCodeGenerator(
-                rooms: rooms,
-                codeDirectory: codeDirectory,
-                engineCodePath: widget.engineCodePath,
-              ).writeEngineCode();
-            },
-            tooltip: 'Save generated code',
+    final actionsContext = PerformableActionsContext.fromActions([
+      PerformableAction(
+        name: 'Build code',
+        activator: buildShortcut,
+        invoke: () => _buildRoomsCode(rooms),
+      ),
+    ]);
+    return MenuAnchor(
+      menuChildren: actionsContext.menuChildren,
+      builder: (final context, final controller, _) => CallbackShortcuts(
+        bindings: actionsContext.bindings,
+        child: SimpleScaffold(
+          title: widget.title,
+          actions: [
+            IconButton(
+              onPressed: controller.toggle,
+              icon: const Icon(Icons.more_vert),
+              tooltip: 'More menu',
+            ),
+          ],
+          body: child,
+          floatingActionButton: FloatingActionButton(
+            autofocus: rooms.isEmpty,
+            onPressed: _newRoom,
+            tooltip: 'New room',
+            child: const Icon(Icons.add),
           ),
-        ],
-        body: child,
-        floatingActionButton: FloatingActionButton(
-          autofocus: rooms.isEmpty,
-          onPressed: _newRoom,
-          tooltip: 'New room',
-          child: const Icon(Icons.add),
         ),
       ),
     );
+  }
+
+  /// Build the code for [rooms].
+  void _buildRoomsCode(final List<LoadedRoom> rooms) {
+    EditorCodeGenerator(
+      rooms: rooms,
+      codeDirectory: codeDirectory,
+      engineCodePath: widget.engineCodePath,
+    ).writeEngineCode();
   }
 
   /// Create a new room.

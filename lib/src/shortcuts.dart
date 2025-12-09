@@ -16,8 +16,8 @@ final editMusicShortcut = CrossPlatformSingleActivator(
   shift: true,
 );
 
-/// The shortcut for saving things.
-final saveShortcut = CrossPlatformSingleActivator(LogicalKeyboardKey.keyS);
+/// The shortcut for building code.
+final buildShortcut = CrossPlatformSingleActivator(LogicalKeyboardKey.keyB);
 
 /// The shortcut for moving a room object.
 /// The shortcut for adding or editing doors.
