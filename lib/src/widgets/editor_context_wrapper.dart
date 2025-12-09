@@ -30,6 +30,7 @@ class EditorContextWrapper extends StatelessWidget {
     wallFactor: editorContext.wallFactor,
     onExamineObject: editorContext.onExamineObject,
     onNoRoomObjects: editorContext.onNoRoomObjects,
+    getSound: editorContext.getSound,
     error: ErrorScreen.withPositional,
     child: EngineTicker(engine: engine, child: child),
   );

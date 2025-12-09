@@ -13,21 +13,6 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
-/// The default [GetSound] function.
-Sound defaultGetSound({
-  required final SoundReference soundReference,
-  required final bool destroy,
-  final LoadMode loadMode = LoadMode.memory,
-  final bool looping = false,
-  final SoundPosition position = unpanned,
-}) => soundReference.path.asSound(
-  destroy: destroy,
-  loadMode: loadMode,
-  looping: looping,
-  position: position,
-  volume: soundReference.volume,
-);
-
 /// The main editor screen.
 class AngstromEditor extends StatefulWidget {
   /// Create an instance.

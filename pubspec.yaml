@@ -1,5 +1,5 @@
 name: angstrom_editor
-version: 0.0.4
+version: 0.1.0
 description: "A package which allows you to embed a level editor into an [Angstrom](https://pub.dev/packages/angstrom) game."
 homepage: https://github.com/chrisnorman7/angstrom_editor
 environment:
@@ -7,7 +7,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
-  angstrom: ^0.0.2
+  angstrom: ^0.1.0
   backstreets_widgets: ^0.37.0
   code_builder: ^4.11.0
   dart_style: ^3.1.3

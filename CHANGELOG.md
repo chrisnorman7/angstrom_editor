@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0
+
+- Update some `getSound`-related code.
+
 ## 0.0.4
 
 - Code cleanup.
