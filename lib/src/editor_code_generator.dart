@@ -400,7 +400,8 @@ class EditorCodeGenerator {
                     buffer.writeln('),');
                   }
                   buffer.writeln('},');
-                  for (final name in ['onEnter', 'onLeave']) {
+                  for (final event in editorRoom.events) {
+                    final name = event.name;
                     buffer.writeln('$name: $roomGetterName.$name,');
                   }
                   buffer.writeln('),');
