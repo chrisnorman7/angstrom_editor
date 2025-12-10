@@ -2,7 +2,7 @@
 library;
 
 export 'src/angstrom_editor.dart';
-export 'src/angstrom_event_types.dart';
+export 'src/angstrom_event_type.dart';
 export 'src/asset_loading_angstrom_engine.dart';
 export 'src/constants.dart';
 export 'src/door_target.dart';

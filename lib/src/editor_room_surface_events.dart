@@ -21,13 +21,13 @@ class EditorRoomSurfaceEvents {
   /// [EditorRoomSurface]s. Attempting to get a callback for an event type for
   /// another type of object (AngstromEventType.onLeave] for example) will
   /// result in [UnimplementedError] being thrown.
-  AngstromCallback? getEventCallback(final AngstromEventTypes eventType) {
+  AngstromCallback? getEventCallback(final AngstromEventType eventType) {
     switch (eventType) {
-      case AngstromEventTypes.onEnter:
+      case AngstromEventType.onEnter:
         return onEnter;
-      case AngstromEventTypes.onMove:
+      case AngstromEventType.onMove:
         return onMove;
-      case AngstromEventTypes.onExit:
+      case AngstromEventType.onExit:
         return onExit;
       default:
         throw UnimplementedError(

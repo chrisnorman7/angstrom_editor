@@ -2,7 +2,7 @@ import 'package:angstrom/angstrom.dart' show Room, RoomObject, RoomSurface;
 
 /// An enum to hold the types of events on [Room]s, [RoomSurface]s, and
 /// [RoomObject]s.
-enum AngstromEventTypes {
+enum AngstromEventType {
   /// [RoomSurface] or [Room] onEnter.
   onEnter,
 

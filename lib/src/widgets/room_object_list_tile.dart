@@ -143,9 +143,9 @@ class RoomObjectListTile extends StatelessWidget {
           },
         ),
         for (final event in [
-          AngstromEventTypes.onApproach,
-          if (door == null) AngstromEventTypes.onActivate,
-          AngstromEventTypes.onLeave,
+          AngstromEventType.onApproach,
+          if (door == null) AngstromEventType.onActivate,
+          AngstromEventType.onLeave,
         ])
           PerformableAction(
             name: event.name,

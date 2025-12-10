@@ -17,8 +17,12 @@ EditorRoomSurface _$EditorRoomSurfaceFromJson(Map<String, dynamic> json) =>
           .map((e) => e as String)
           .toList(),
       events: (json['events'] as List<dynamic>)
-          .map((e) => $enumDecode(_$AngstromEventTypesEnumMap, e))
+          .map((e) => $enumDecode(_$AngstromEventTypeEnumMap, e))
           .toList(),
+      eventComments: (json['eventComments'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry($enumDecode(_$AngstromEventTypeEnumMap, k), e as String),
+      ),
       contactSoundsVolume:
           (json['contactSoundsVolume'] as num?)?.toDouble() ?? 0.7,
       isWall: json['isWall'] as bool? ?? false,
@@ -30,26 +34,28 @@ EditorRoomSurface _$EditorRoomSurfaceFromJson(Map<String, dynamic> json) =>
           : SoundReference.fromJson(json['ambiance'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$EditorRoomSurfaceToJson(EditorRoomSurface instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'points': instance.points,
-      'contactSounds': instance.contactSounds,
-      'events': instance.events
-          .map((e) => _$AngstromEventTypesEnumMap[e]!)
-          .toList(),
-      'contactSoundsVolume': instance.contactSoundsVolume,
-      'isWall': instance.isWall,
-      'moveInterval': instance.moveInterval.inMicroseconds,
-      'ambiance': instance.ambiance,
-    };
+Map<String, dynamic> _$EditorRoomSurfaceToJson(
+  EditorRoomSurface instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'points': instance.points,
+  'contactSounds': instance.contactSounds,
+  'events': instance.events.map((e) => _$AngstromEventTypeEnumMap[e]!).toList(),
+  'eventComments': instance.eventComments.map(
+    (k, e) => MapEntry(_$AngstromEventTypeEnumMap[k]!, e),
+  ),
+  'contactSoundsVolume': instance.contactSoundsVolume,
+  'isWall': instance.isWall,
+  'moveInterval': instance.moveInterval.inMicroseconds,
+  'ambiance': instance.ambiance,
+};
 
-const _$AngstromEventTypesEnumMap = {
-  AngstromEventTypes.onEnter: 'onEnter',
-  AngstromEventTypes.onMove: 'onMove',
-  AngstromEventTypes.onExit: 'onExit',
-  AngstromEventTypes.onApproach: 'onApproach',
-  AngstromEventTypes.onActivate: 'onActivate',
-  AngstromEventTypes.onLeave: 'onLeave',
+const _$AngstromEventTypeEnumMap = {
+  AngstromEventType.onEnter: 'onEnter',
+  AngstromEventType.onMove: 'onMove',
+  AngstromEventType.onExit: 'onExit',
+  AngstromEventType.onApproach: 'onApproach',
+  AngstromEventType.onActivate: 'onActivate',
+  AngstromEventType.onLeave: 'onLeave',
 };

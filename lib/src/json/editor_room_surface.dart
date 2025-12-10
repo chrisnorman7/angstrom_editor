@@ -14,6 +14,7 @@ class EditorRoomSurface {
     required this.points,
     required this.contactSounds,
     required this.events,
+    required this.eventComments,
     this.contactSoundsVolume = 0.7,
     this.isWall = false,
     this.moveInterval = const Duration(milliseconds: 500),
@@ -37,7 +38,10 @@ class EditorRoomSurface {
   final List<String> contactSounds;
 
   /// The list of events which should be programmed on this surface.
-  final List<AngstromEventTypes> events;
+  final List<AngstromEventType> events;
+
+  /// The doc comments to be generated for [events].
+  final Map<AngstromEventType, String> eventComments;
 
   /// The volume to play [contactSounds] at.
   double contactSoundsVolume;

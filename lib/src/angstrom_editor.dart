@@ -360,6 +360,7 @@ class AngstromEditorState extends State<AngstromEditor> {
           points: [const ObjectCoordinates(0, 0)],
           contactSounds: widget.footsteps.first.soundPaths,
           events: [],
+          eventComments: {},
         ),
       ],
       objects: [],

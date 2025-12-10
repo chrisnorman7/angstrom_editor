@@ -158,9 +158,9 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
               },
             ),
             for (final event in [
-              AngstromEventTypes.onEnter,
-              AngstromEventTypes.onMove,
-              AngstromEventTypes.onExit,
+              AngstromEventType.onEnter,
+              AngstromEventType.onMove,
+              AngstromEventType.onExit,
             ])
               PerformableAction(
                 name: event.name,

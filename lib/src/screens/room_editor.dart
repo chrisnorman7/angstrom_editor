@@ -84,6 +84,7 @@ class _RoomEditorState extends State<RoomEditor> {
       points: [],
       contactSounds: widget.editorContext.footsteps.first.soundPaths,
       events: [],
+      eventComments: {},
     );
     widget.editorContext.room.editorRoom.surfaces.add(surface);
     widget.editorContext.save();

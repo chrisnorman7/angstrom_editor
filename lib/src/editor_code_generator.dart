@@ -98,7 +98,7 @@ class EditorCodeGenerator {
                 }),
               );
             for (final event in object.events) {
-              if (event != AngstromEventTypes.onActivate || door == null) {
+              if (event != AngstromEventType.onActivate || door == null) {
                 c.methods.add(
                   Method((final m) {
                     m
@@ -353,7 +353,7 @@ class EditorCodeGenerator {
                     final object = editorRoom.objects[j];
                     final events = object.events.where(
                       (final e) =>
-                          e != AngstromEventTypes.onActivate ||
+                          e != AngstromEventType.onActivate ||
                           object.door == null,
                     );
                     if (events.isEmpty) {

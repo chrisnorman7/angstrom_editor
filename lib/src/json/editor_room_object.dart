@@ -54,7 +54,7 @@ class EditorRoomObject {
   int ambianceMaxDistance;
 
   /// The events which this object expects.
-  final List<AngstromEventTypes> events;
+  final List<AngstromEventType> events;
 
   /// A door which this object represents.
   EditorDoor? door;
