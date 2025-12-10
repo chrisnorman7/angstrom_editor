@@ -159,22 +159,18 @@ class EditorCodeGenerator {
                     ..type = MethodType.getter;
                 });
               }(),
-            for (final event in [
-              AngstromEventType.onEnter,
-              AngstromEventType.onLeave,
-            ])
-              if (editorRoom.events.contains(event))
-                Method((final m) {
-                  m
-                    ..name = event.name
-                    ..docs.add(
-                      (editorRoom.eventComments[event] ??
-                              'The `Room.${event.name}` event.')
-                          .asDocComment,
-                    )
-                    ..returns = const Reference('void')
-                    ..requiredParameters.add(engineParameter);
-                }),
+            for (final event in editorRoom.events)
+              Method((final m) {
+                m
+                  ..name = event.name
+                  ..docs.add(
+                    (editorRoom.eventComments[event] ??
+                            'The `Room.${event.name}` event.')
+                        .asDocComment,
+                  )
+                  ..returns = const Reference('void')
+                  ..requiredParameters.add(engineParameter);
+              }),
           ]),
       );
       final lib = Library((final lib) {
@@ -257,171 +253,178 @@ class EditorCodeGenerator {
       'AssetLoadingAngstromEngine',
       angstromEditorPackage,
     );
-    final engineClass = Class((final c) {
-      c
-        ..name = engineClassName
-        ..docs.addAll([
-          'The custom engine for your game.'.asDocComment,
-          '///',
-          // ignore: lines_longer_than_80_chars
-          'This class will ensure that your custom callbacks can be loaded in a completely type safe manner.'
-              .asDocComment,
-        ])
-        ..extend = assetLoadingEngine
-        ..constructors.add(
-          Constructor((final c) {
-            c
-              ..docs.add('Create an instance.'.asDocComment)
-              ..optionalParameters.addAll([
-                ...['playerCharacter', 'assetBundle'].map(
-                  (final name) => Parameter((final p) {
-                    p
-                      ..name = name
-                      ..toSuper = true
-                      ..required = true;
-                  }),
-                ),
-                ...roomCodeClasses.map((final roomCode) {
-                  final room = roomCode.room.editorRoom;
-                  return Parameter((final p) {
-                    p
-                      ..name = room.name.camelCase
-                      ..named = true
-                      ..required = true
-                      ..toThis = true;
-                  });
-                }),
-              ]);
-          }),
-        )
-        ..fields.addAll(
-          roomCodeClasses.map((final roomCode) {
-            final room = roomCode.room.editorRoom;
-            final roomClass = roomCode.roomClass;
-            return Field((final f) {
-              f
-                ..name = room.name.camelCase
-                ..docs.add(
-                  'Events for ${room.name}. Used by [buildRoom].'.asDocComment,
-                )
-                ..modifier = FieldModifier.final$
-                ..type = refer(
-                  roomClass.name,
-                  [
-                    path.basename(codeDirectory.path),
-                    roomExportsFilename,
-                  ].join('/'),
-                );
-            });
-          }),
-        )
-        ..methods.add(
-          Method((final m) {
-            m
-              ..annotations.add(refer('override'))
-              ..name = 'roomEvents'
-              ..docs.add(
-                'Provides the properties created by code gen.'.asDocComment,
-              )
-              ..returns = roomEventsMap
-              ..lambda = true
-              ..type = MethodType.getter
-              ..body = Code.scope((final allocate) {
-                final buffer = StringBuffer()..writeln('{');
-                for (var i = 0; i < rooms.length; i++) {
-                  final roomCode = roomCodeClasses[i];
-                  final room = roomCode.room;
-                  final editorRoom = room.editorRoom;
-                  final roomId = room.id.replaceAll(r'\', '/');
-                  final roomClass = roomCode.roomClass;
-                  final roomGetterName = roomClass.name.camelCase.substring(
-                    0,
-                    roomClass.name.length - base.length,
-                  );
-                  buffer
-                    ..writeln('{editorRoom.name} events.'.asInlineComment)
-                    ..writeln('${literalString(roomId)}:')
-                    ..writeln('${allocate(loadedRoomEvents)}(')
-                    ..writeln('surfaceEvents: {');
-                  for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
-                    final surface = editorRoom.surfaces[j];
-                    if (surface.events.isEmpty) {
-                      continue;
-                    }
-                    buffer
-                      ..writeln(
-                        '${literalString(surface.id)}: // ${surface.name}',
-                      )
-                      ..writeln(
-                        // ignore: lines_longer_than_80_chars
-                        '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
-                      );
-                    for (final event in surface.events) {
-                      buffer
-                        ..write('${event.name}: ')
-                        ..write(roomGetterName)
-                        ..write('.')
-                        ..writeln(surface.name.camelCase)
-                        ..write('.')
-                        ..write(event.name);
-                    }
-                    buffer.writeln('),');
-                  }
-                  buffer
-                    ..writeln('},')
-                    ..writeln('objectEvents: {');
-                  for (var j = 0; j < roomCode.objectClasses.length; j++) {
-                    final object = editorRoom.objects[j];
-                    final events = object.events.where(
-                      (final e) =>
-                          e != AngstromEventType.onActivate ||
-                          object.door == null,
-                    );
-                    if (events.isEmpty) {
-                      continue;
-                    }
-                    buffer
-                      ..writeln(
-                        '${literalString(object.id)}: // ${object.name}',
-                      )
-                      ..writeln(
-                        // ignore: lines_longer_than_80_chars
-                        '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
-                      );
-                    for (final event in events) {
-                      buffer
-                        ..write('${event.name}: ')
-                        ..write(roomGetterName)
-                        ..write('.')
-                        ..writeln(object.name.camelCase)
-                        ..write('.')
-                        ..write(event.name);
-                    }
-                    buffer.writeln('),');
-                  }
-                  buffer.writeln('},');
-                  for (final event in editorRoom.events) {
-                    final name = event.name;
-                    buffer.writeln('$name: $roomGetterName.$name,');
-                  }
-                  buffer.writeln('),');
-                }
-                buffer.writeln('}');
-                return buffer.toString();
-              });
-          }),
-        );
-    });
-    final lib = Library((final lib) {
-      lib.body.add(engineClass);
-    });
-    final emitter = DartEmitter.scoped();
-    final dart = lib.accept(emitter);
     final dartFile = File(engineCodePath);
-    if (!dartFile.parent.existsSync()) {
-      dartFile.parent.createSync(recursive: true);
-    }
     try {
+      final engineClass = Class((final c) {
+        c
+          ..name = engineClassName
+          ..docs.addAll([
+            'The custom engine for your game.'.asDocComment,
+            '///',
+            // ignore: lines_longer_than_80_chars
+            'This class will ensure that your custom callbacks can be loaded in a completely type safe manner.'
+                .asDocComment,
+          ])
+          ..extend = assetLoadingEngine
+          ..constructors.add(
+            Constructor((final c) {
+              c
+                ..docs.add('Create an instance.'.asDocComment)
+                ..optionalParameters.addAll([
+                  ...['playerCharacter', 'assetBundle'].map(
+                    (final name) => Parameter((final p) {
+                      p
+                        ..name = name
+                        ..toSuper = true
+                        ..required = true;
+                    }),
+                  ),
+                  ...roomCodeClasses.map((final roomCode) {
+                    final room = roomCode.room.editorRoom;
+                    return Parameter((final p) {
+                      p
+                        ..name = room.name.camelCase
+                        ..named = true
+                        ..required = true
+                        ..toThis = true;
+                    });
+                  }),
+                ]);
+            }),
+          )
+          ..fields.addAll(
+            roomCodeClasses.map((final roomCode) {
+              final room = roomCode.room.editorRoom;
+              final roomClass = roomCode.roomClass;
+              return Field((final f) {
+                f
+                  ..name = room.name.camelCase
+                  ..docs.add(
+                    'Events for ${room.name}. Used by [buildRoom].'
+                        .asDocComment,
+                  )
+                  ..modifier = FieldModifier.final$
+                  ..type = refer(
+                    roomClass.name,
+                    [
+                      path.basename(codeDirectory.path),
+                      roomExportsFilename,
+                    ].join('/'),
+                  );
+              });
+            }),
+          )
+          ..methods.add(
+            Method((final m) {
+              m
+                ..annotations.add(refer('override'))
+                ..name = 'roomEvents'
+                ..docs.add(
+                  'Provides the properties created by code gen.'.asDocComment,
+                )
+                ..returns = roomEventsMap
+                ..lambda = true
+                ..type = MethodType.getter
+                ..body = Code.scope((final allocate) {
+                  final buffer = StringBuffer()..writeln('{');
+                  for (var i = 0; i < rooms.length; i++) {
+                    if (i >= roomCodeClasses.length) {
+                      throw StateError(
+                        // ignore: lines_longer_than_80_chars
+                        'Code for ${rooms[i].editorRoom.name} has not been generated.',
+                      );
+                    }
+                    final roomCode = roomCodeClasses[i];
+                    final room = roomCode.room;
+                    final editorRoom = room.editorRoom;
+                    final roomId = room.id.replaceAll(r'\', '/');
+                    final roomClass = roomCode.roomClass;
+                    final roomGetterName = roomClass.name.camelCase.substring(
+                      0,
+                      roomClass.name.length - base.length,
+                    );
+                    buffer
+                      ..writeln('{editorRoom.name} events.'.asInlineComment)
+                      ..writeln('${literalString(roomId)}:')
+                      ..writeln('${allocate(loadedRoomEvents)}(')
+                      ..writeln('surfaceEvents: {');
+                    for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
+                      final surface = editorRoom.surfaces[j];
+                      if (surface.events.isEmpty) {
+                        continue;
+                      }
+                      buffer
+                        ..writeln(
+                          '${literalString(surface.id)}: // ${surface.name}',
+                        )
+                        ..writeln(
+                          // ignore: lines_longer_than_80_chars
+                          '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
+                        );
+                      for (final event in surface.events) {
+                        buffer
+                          ..write('${event.name}: ')
+                          ..write(roomGetterName)
+                          ..write('.')
+                          ..writeln(surface.name.camelCase)
+                          ..write('.')
+                          ..write(event.name);
+                      }
+                      buffer.writeln('),');
+                    }
+                    buffer
+                      ..writeln('},')
+                      ..writeln('objectEvents: {');
+                    for (var j = 0; j < roomCode.objectClasses.length; j++) {
+                      final object = editorRoom.objects[j];
+                      final events = object.events.where(
+                        (final e) =>
+                            e != AngstromEventType.onActivate ||
+                            object.door == null,
+                      );
+                      if (events.isEmpty) {
+                        continue;
+                      }
+                      buffer
+                        ..writeln(
+                          '${literalString(object.id)}: // ${object.name}',
+                        )
+                        ..writeln(
+                          // ignore: lines_longer_than_80_chars
+                          '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
+                        );
+                      for (final event in events) {
+                        buffer
+                          ..write('${event.name}: ')
+                          ..write(roomGetterName)
+                          ..write('.')
+                          ..writeln(object.name.camelCase)
+                          ..write('.')
+                          ..write(event.name);
+                      }
+                      buffer.writeln('),');
+                    }
+                    buffer.writeln('},');
+                    for (final event in editorRoom.events) {
+                      final name = event.name;
+                      buffer.writeln('$name: $roomGetterName.$name,');
+                    }
+                    buffer.writeln('),');
+                  }
+                  buffer.writeln('}');
+                  return buffer.toString();
+                });
+            }),
+          );
+      });
+      final lib = Library((final lib) {
+        lib.body.add(engineClass);
+      });
+      final emitter = DartEmitter.scoped();
+      final dart = lib.accept(emitter);
+      if (!dartFile.parent.existsSync()) {
+        dartFile.parent.createSync(recursive: true);
+      }
       final code = formatter.format(dart.toString());
       dartFile.writeAsStringSync(code);
       return true;

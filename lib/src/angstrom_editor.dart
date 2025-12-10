@@ -383,15 +383,20 @@ class AngstromEditorState extends State<AngstromEditor> {
 
   /// Build the code for [rooms].
   void _buildRoomsCode(final List<LoadedRoom> rooms) {
-    final editorCodeGenerator = EditorCodeGenerator(
-      rooms: rooms,
-      codeDirectory: codeDirectory,
-      engineCodePath: widget.engineCodePath,
-    );
-    if (editorCodeGenerator.writeEngineCode()) {
-      context.maybePlaySound(widget.buildCompleteSound);
-    } else {
+    try {
+      final editorCodeGenerator = EditorCodeGenerator(
+        rooms: rooms,
+        codeDirectory: codeDirectory,
+        engineCodePath: widget.engineCodePath,
+      );
+      if (editorCodeGenerator.writeEngineCode()) {
+        context.maybePlaySound(widget.buildCompleteSound);
+      } else {
+        context.maybePlaySound(widget.buildFailSound);
+      }
+    } catch (e) {
       context.maybePlaySound(widget.buildFailSound);
+      rethrow;
     }
   }
 
