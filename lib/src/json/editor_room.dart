@@ -13,6 +13,8 @@ class EditorRoom {
   EditorRoom({
     required this.surfaces,
     required this.objects,
+    required this.events,
+    required this.eventComments,
     this.name = 'Untitled Room',
     this.music,
     this.x = 0,
@@ -29,6 +31,12 @@ class EditorRoom {
 
   /// The objects which are part of this room.
   final List<EditorRoomObject> objects;
+
+  /// The events that will need coding.
+  final List<AngstromEventType> events;
+
+  /// The comments for [events].
+  final Map<AngstromEventType, String> eventComments;
 
   /// The name of this room.
   String name;

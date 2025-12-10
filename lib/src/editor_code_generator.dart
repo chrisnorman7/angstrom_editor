@@ -159,16 +159,22 @@ class EditorCodeGenerator {
                     ..type = MethodType.getter;
                 });
               }(),
-            ...['onEnter', 'onLeave'].map(
-              (final name) => Method((final m) {
-                m
-                  ..name = name
-                  ..body = const Code('')
-                  ..docs.add('The `Room.$name` event.'.asDocComment)
-                  ..returns = const Reference('void')
-                  ..requiredParameters.add(engineParameter);
-              }),
-            ),
+            for (final event in [
+              AngstromEventType.onEnter,
+              AngstromEventType.onLeave,
+            ])
+              if (editorRoom.events.contains(event))
+                Method((final m) {
+                  m
+                    ..name = event.name
+                    ..docs.add(
+                      (editorRoom.eventComments[event] ??
+                              'The `Room.${event.name}` event.')
+                          .asDocComment,
+                    )
+                    ..returns = const Reference('void')
+                    ..requiredParameters.add(engineParameter);
+                }),
           ]),
       );
       final lib = Library((final lib) {

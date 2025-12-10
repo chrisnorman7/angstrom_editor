@@ -2,7 +2,8 @@
 
 ## 0.2.0
 
-- Added the ability to set comments for the events which are defined in the editor.
+- Feat: Set comments for the events which are defined in the editor.
+- Feat: Specify events on rooms.
 
 ## 0.1.0
 

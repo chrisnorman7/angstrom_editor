@@ -193,11 +193,6 @@ class AngstromEditorState extends State<AngstromEditor> {
                     );
                   },
                 ),
-                PerformableAction(
-                  name: 'Copy ID',
-                  activator: copyExtraShortcut,
-                  invoke: room.id.copyToClipboard,
-                ),
                 if (musicReference == null) ...[
                   PerformableAction(
                     name: 'Set music',
@@ -260,6 +255,48 @@ class AngstromEditorState extends State<AngstromEditor> {
                     },
                   ),
                 ],
+                for (final event in [
+                  AngstromEventType.onEnter,
+                  AngstromEventType.onExit,
+                ]) ...[
+                  PerformableAction(
+                    name: event.name,
+                    checked: editorRoom.events.contains(event),
+                    invoke: () {
+                      if (editorRoom.events.contains(event)) {
+                        editorRoom.events.remove(event);
+                      } else {
+                        editorRoom.events.add(event);
+                      }
+                      editorContext.save();
+                      setState(() {});
+                    },
+                  ),
+                  if (editorRoom.events.contains(event))
+                    PerformableAction(
+                      name: 'Comment for ${event.name}',
+                      invoke: () => context.pushWidgetBuilder(
+                        (_) => EditCommentScreen(
+                          onChange: (final value) {
+                            if (value == null) {
+                              if (editorRoom.eventComments.containsKey(event)) {
+                                editorRoom.eventComments.remove(event);
+                              }
+                            } else {
+                              editorRoom.eventComments[event] = value;
+                            }
+                            editorContext.save();
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+                PerformableAction(
+                  name: 'Copy ID',
+                  activator: copyExtraShortcut,
+                  invoke: room.id.copyToClipboard,
+                ),
                 PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,
@@ -364,6 +401,8 @@ class AngstromEditorState extends State<AngstromEditor> {
         ),
       ],
       objects: [],
+      events: [],
+      eventComments: {},
     );
     final now = DateTime.now();
     final month = now.month.toString().padLeft(2, '0');
