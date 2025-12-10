@@ -365,7 +365,7 @@ class AngstromEditorState extends State<AngstromEditor> {
               tooltip: 'More menu',
             ),
           ],
-          body: child,
+          body: CommonShortcuts(newCallback: _newRoom, child: child),
           floatingActionButton: FloatingActionButton(
             autofocus: rooms.isEmpty,
             onPressed: _newRoom,
