@@ -345,7 +345,11 @@ class EditorCodeGenerator {
                     );
                     buffer
                       ..writeln('{editorRoom.name} events.'.asInlineComment)
-                      ..writeln('${literalString(roomId)}:')
+                      ..writeln('${literalString(roomId)}:');
+                    if (editorRoom.events.isEmpty) {
+                      buffer.write('const ');
+                    }
+                    buffer
                       ..writeln('${allocate(loadedRoomEvents)}(')
                       ..writeln('surfaceEvents: {');
                     for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
