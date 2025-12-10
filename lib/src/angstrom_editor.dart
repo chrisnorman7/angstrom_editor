@@ -34,6 +34,7 @@ class AngstromEditor extends StatefulWidget {
     this.onNoRoomObjects = defaultNoRoomObjects,
     this.volumeChangeAmount = 0.1,
     this.buildCompleteSound,
+    this.buildFailSound,
     super.key,
   }) : assert(
          footsteps.length > 0,
@@ -97,8 +98,11 @@ class AngstromEditor extends StatefulWidget {
   /// The amount to change sound volumes by.
   final double volumeChangeAmount;
 
-  /// The sound to play when code generation is complete.
+  /// The sound to play when code generation is successful.
   final Sound? buildCompleteSound;
+
+  /// The sound to play when code generation fails.
+  final Sound? buildFailSound;
 
   /// Create state for this widget.
   @override
@@ -379,12 +383,16 @@ class AngstromEditorState extends State<AngstromEditor> {
 
   /// Build the code for [rooms].
   void _buildRoomsCode(final List<LoadedRoom> rooms) {
-    EditorCodeGenerator(
+    final editorCodeGenerator = EditorCodeGenerator(
       rooms: rooms,
       codeDirectory: codeDirectory,
       engineCodePath: widget.engineCodePath,
-    ).writeEngineCode();
-    context.maybePlaySound(widget.buildCompleteSound);
+    );
+    if (editorCodeGenerator.writeEngineCode()) {
+      context.maybePlaySound(widget.buildCompleteSound);
+    } else {
+      context.maybePlaySound(widget.buildFailSound);
+    }
   }
 
   /// Create a new room.

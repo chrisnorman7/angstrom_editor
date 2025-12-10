@@ -4,6 +4,7 @@
 
 - Feat: Set comments for the events which are defined in the editor.
 - Feat: Specify events on rooms.
+- Feat: Optionally play a sound when a build fails.
 
 ## 0.1.0
 

@@ -235,7 +235,9 @@ class EditorCodeGenerator {
   }
 
   /// Write the code for the custom engine.
-  void writeEngineCode() {
+  ///
+  /// Returns `true` if the build succeeds.
+  bool writeEngineCode() {
     final roomCodeClasses = _writeRooms().toList();
     _writeRoomExports(
       roomCodeClasses.map((final roomCode) => roomCode.filename),
@@ -421,6 +423,7 @@ class EditorCodeGenerator {
     try {
       final code = formatter.format(dart.toString());
       dartFile.writeAsStringSync(code);
+      return true;
       // ignore: avoid_catches_without_on_clauses
     } catch (e, s) {
       final buffer = StringBuffer()
@@ -434,6 +437,7 @@ class EditorCodeGenerator {
       lineSplitter.convert('$s').forEach(buffer.writeln);
       buffer.writeln('*/');
       dartFile.writeAsStringSync(buffer.toString());
+      return false;
     }
   }
 }
