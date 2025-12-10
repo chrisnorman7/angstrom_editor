@@ -4,6 +4,7 @@
     "math",
     "recase",
     "soloud",
+    "textwrap",
     "unpanned"
   ]
 }

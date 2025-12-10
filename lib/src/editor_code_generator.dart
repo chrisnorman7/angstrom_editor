@@ -61,15 +61,16 @@ class EditorCodeGenerator {
             (final c) => c
               ..abstract = true
               ..name = '$roomClassName${surface.name.pascalCase}$base'
-              ..docs.add('/// Events for ${surface.name}.')
+              ..docs.add('Events for ${surface.name}.'.asDocComment)
               ..methods.addAll(
                 surface.events.map(
                   (final eventType) => Method(
                     (final m) => m
                       ..name = eventType.name
                       ..docs.add(
-                        surface.eventComments[eventType] ??
-                            '/// The ${eventType.name} event.',
+                        (surface.eventComments[eventType] ??
+                                'The ${eventType.name} event.')
+                            .asDocComment,
                       )
                       ..requiredParameters.add(engineParameter)
                       ..returns = refer('void'),
@@ -80,7 +81,7 @@ class EditorCodeGenerator {
                 Constructor((final c) {
                   c
                     ..constant = true
-                    ..docs.add('/// Create an instance.');
+                    ..docs.add('Create an instance.'.asDocComment);
                 }),
               ),
           ),
@@ -92,12 +93,12 @@ class EditorCodeGenerator {
             c
               ..name = '${object.name.pascalCase}$base'
               ..abstract = true
-              ..docs.add('/// Events for the ${object.name} object.')
+              ..docs.add('Events for the ${object.name} object.'.asDocComment)
               ..constructors.add(
                 Constructor((final c) {
                   c
                     ..constant = true
-                    ..docs.add('/// Create an instance.');
+                    ..docs.add('Create an instance.'.asDocComment);
                 }),
               );
             for (final event in object.events) {
@@ -107,8 +108,9 @@ class EditorCodeGenerator {
                     m
                       ..name = event.name
                       ..docs.add(
-                        object.eventComments[event] ??
-                            '/// The ${event.name} event.',
+                        (object.eventComments[event] ??
+                                'The ${event.name} event.')
+                            .asDocComment,
                       )
                       ..returns = refer('void')
                       ..requiredParameters.add(engineParameter);
@@ -122,12 +124,14 @@ class EditorCodeGenerator {
         (final b) => b
           ..name = '$roomClassName$base'
           ..abstract = true
-          ..docs.add('/// Provides events for ${room.editorRoom.name}.')
+          ..docs.add(
+            'Provides events for ${room.editorRoom.name}.'.asDocComment,
+          )
           ..constructors.add(
             Constructor((final c) {
               c
                 ..constant = true
-                ..docs.add('/// Create an instance.');
+                ..docs.add('Create an instance.'.asDocComment);
             }),
           )
           ..methods.addAll([
@@ -138,7 +142,7 @@ class EditorCodeGenerator {
                 return Method((final m) {
                   m
                     ..name = surface.name.camelCase
-                    ..docs.add('/// ${surface.name}.')
+                    ..docs.add('${surface.name}.'.asDocComment)
                     ..returns = refer(surfaceClass.name)
                     ..type = MethodType.getter;
                 });
@@ -150,7 +154,7 @@ class EditorCodeGenerator {
                 return Method((final m) {
                   m
                     ..name = object.name.camelCase
-                    ..docs.add('/// ${object.name}.')
+                    ..docs.add('${object.name}.'.asDocComment)
                     ..returns = refer(objectClass.name)
                     ..type = MethodType.getter;
                 });
@@ -160,7 +164,7 @@ class EditorCodeGenerator {
                 m
                   ..name = name
                   ..body = const Code('')
-                  ..docs.add('/// The `Room.$name` event.')
+                  ..docs.add('The `Room.$name` event.'.asDocComment)
                   ..returns = const Reference('void')
                   ..requiredParameters.add(engineParameter);
               }),
@@ -249,16 +253,17 @@ class EditorCodeGenerator {
       c
         ..name = engineClassName
         ..docs.addAll([
-          '/// The custom engine for your game.',
+          'The custom engine for your game.'.asDocComment,
           '///',
-          '/// This class will ensure that your custom callbacks can be loaded in a',
-          '/// completely type safe manner.',
+          // ignore: lines_longer_than_80_chars
+          'This class will ensure that your custom callbacks can be loaded in a completely type safe manner.'
+              .asDocComment,
         ])
         ..extend = assetLoadingEngine
         ..constructors.add(
           Constructor((final c) {
             c
-              ..docs.add('/// Create an instance.')
+              ..docs.add('Create an instance.'.asDocComment)
               ..optionalParameters.addAll([
                 ...['playerCharacter', 'assetBundle'].map(
                   (final name) => Parameter((final p) {
@@ -288,7 +293,9 @@ class EditorCodeGenerator {
             return Field((final f) {
               f
                 ..name = room.name.camelCase
-                ..docs.add('/// Events for ${room.name}. Used by [buildRoom].')
+                ..docs.add(
+                  'Events for ${room.name}. Used by [buildRoom].'.asDocComment,
+                )
                 ..modifier = FieldModifier.final$
                 ..type = refer(
                   roomClass.name,
@@ -305,7 +312,9 @@ class EditorCodeGenerator {
             m
               ..annotations.add(refer('override'))
               ..name = 'roomEvents'
-              ..docs.add('/// Provides the properties created by code gen.')
+              ..docs.add(
+                'Provides the properties created by code gen.'.asDocComment,
+              )
               ..returns = roomEventsMap
               ..lambda = true
               ..type = MethodType.getter
@@ -322,7 +331,7 @@ class EditorCodeGenerator {
                     roomClass.name.length - base.length,
                   );
                   buffer
-                    ..writeln('// ${editorRoom.name} events.')
+                    ..writeln('{editorRoom.name} events.'.asInlineComment)
                     ..writeln('${literalString(roomId)}:')
                     ..writeln('${allocate(loadedRoomEvents)}(')
                     ..writeln('surfaceEvents: {');

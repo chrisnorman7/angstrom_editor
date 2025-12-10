@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:angstrom_editor/angstrom_editor.dart';
+import 'package:textwrap/textwrap.dart';
 
 /// Useful extensions on [Directory] instances.
 extension DirectoryX on Directory {
@@ -19,4 +20,15 @@ extension DirectoryX on Directory {
     });
     return rooms;
   }
+}
+
+/// Useful methods for [String]s.
+extension StringX on String {
+  /// Return `this` [String] as an inline comment.
+  String get asInlineComment =>
+      fill(this, width: 80, initialIndent: '// ', subsequentIndent: '// ');
+
+  /// Return `this` [String] as a doc comment.
+  String get asDocComment =>
+      fill(this, width: 80, initialIndent: '/// ', subsequentIndent: '/// ');
 }
