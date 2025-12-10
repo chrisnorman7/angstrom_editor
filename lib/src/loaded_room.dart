@@ -52,6 +52,7 @@ class LoadedRoom extends Room {
     final objectEvents =
         events.objectEvents[object.id] ?? const EditorRoomObjectEvents();
     return RoomObject(
+      id: object.id,
       name: object.name,
       coordinates: object.coordinates,
       ambiance: object.ambiance,
