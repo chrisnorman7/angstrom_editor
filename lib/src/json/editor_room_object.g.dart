@@ -9,10 +9,14 @@ part of 'editor_room_object.dart';
 EditorRoomObject _$EditorRoomObjectFromJson(Map<String, dynamic> json) =>
     EditorRoomObject(
       id: json['id'] as String,
+      name: json['name'] as String,
       events: (json['events'] as List<dynamic>)
           .map((e) => $enumDecode(_$AngstromEventTypeEnumMap, e))
           .toList(),
-      name: json['name'] as String,
+      eventComments: (json['eventComments'] as Map<String, dynamic>).map(
+        (k, e) =>
+            MapEntry($enumDecode(_$AngstromEventTypeEnumMap, k), e as String),
+      ),
       x: (json['x'] as num?)?.toInt() ?? 0,
       y: (json['y'] as num?)?.toInt() ?? 0,
       ambiance: json['ambiance'] == null
@@ -34,6 +38,9 @@ Map<String, dynamic> _$EditorRoomObjectToJson(
   'ambiance': instance.ambiance,
   'ambianceMaxDistance': instance.ambianceMaxDistance,
   'events': instance.events.map((e) => _$AngstromEventTypeEnumMap[e]!).toList(),
+  'eventComments': instance.eventComments.map(
+    (k, e) => MapEntry(_$AngstromEventTypeEnumMap[k]!, e),
+  ),
   'door': instance.door,
 };
 

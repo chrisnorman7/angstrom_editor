@@ -161,7 +161,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
               AngstromEventType.onEnter,
               AngstromEventType.onMove,
               AngstromEventType.onExit,
-            ])
+            ]) ...[
               PerformableAction(
                 name: event.name,
                 checked: surface.events.contains(event),
@@ -174,6 +174,24 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                   onChange();
                 },
               ),
+              PerformableAction(
+                name: 'Comment for ${event.name}',
+                invoke: () => context.pushWidgetBuilder(
+                  (_) => EditCommentScreen(
+                    onChange: (final value) {
+                      if (value == null) {
+                        if (surface.eventComments.containsKey(event)) {
+                          surface.eventComments.remove(event);
+                        }
+                      } else {
+                        surface.eventComments[event] = value;
+                      }
+                      onChange();
+                    },
+                  ),
+                ),
+              ),
+            ],
             PerformableAction(
               name: 'delete',
               activator: deleteShortcut,

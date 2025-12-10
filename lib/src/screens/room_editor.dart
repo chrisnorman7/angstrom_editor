@@ -96,6 +96,7 @@ class _RoomEditorState extends State<RoomEditor> {
     final object = EditorRoomObject(
       id: widget.editorContext.newId(),
       events: [],
+      eventComments: {},
       name: 'Untitled Object',
     );
     widget.editorContext.room.editorRoom.objects.add(object);

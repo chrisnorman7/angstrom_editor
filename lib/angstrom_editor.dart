@@ -20,6 +20,7 @@ export 'src/json/editor_room_surface.dart';
 export 'src/loaded_room.dart';
 export 'src/loaded_room_events.dart';
 export 'src/room_code.dart';
+export 'src/screens/edit_comment_screen.dart';
 export 'src/screens/edit_door_screen.dart';
 export 'src/screens/edit_volume_screen.dart';
 export 'src/screens/go_to_coordinates_screen.dart';

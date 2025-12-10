@@ -12,8 +12,9 @@ class EditorRoomObject {
   /// Create an instance.
   EditorRoomObject({
     required this.id,
-    required this.events,
     required this.name,
+    required this.events,
+    required this.eventComments,
     this.x = 0,
     this.y = 0,
     this.ambiance,
@@ -55,6 +56,9 @@ class EditorRoomObject {
 
   /// The events which this object expects.
   final List<AngstromEventType> events;
+
+  /// The doc comments to be generated for [events].
+  final Map<AngstromEventType, String> eventComments;
 
   /// A door which this object represents.
   EditorDoor? door;

@@ -146,7 +146,7 @@ class RoomObjectListTile extends StatelessWidget {
           AngstromEventType.onApproach,
           if (door == null) AngstromEventType.onActivate,
           AngstromEventType.onLeave,
-        ])
+        ]) ...[
           PerformableAction(
             name: event.name,
             checked: object.events.contains(event),
@@ -159,6 +159,25 @@ class RoomObjectListTile extends StatelessWidget {
               onChange();
             },
           ),
+          if (object.events.contains(event))
+            PerformableAction(
+              name: 'Comment for ${event.name}',
+              invoke: () => context.pushWidgetBuilder(
+                (_) => EditCommentScreen(
+                  onChange: (final value) {
+                    if (value == null) {
+                      if (object.eventComments.containsKey(event)) {
+                        object.eventComments.remove(event);
+                      }
+                    } else {
+                      object.eventComments[event] = value;
+                    }
+                    onChange();
+                  },
+                ),
+              ),
+            ),
+        ],
         if (door == null)
           PerformableAction(
             name: 'Make door',
