@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+- Added the ability to set comments for the events which are defined in the editor.
+
 ## 0.1.0
 
 - Update some `getSound`-related code.

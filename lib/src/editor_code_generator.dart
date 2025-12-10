@@ -67,7 +67,10 @@ class EditorCodeGenerator {
                   (final eventType) => Method(
                     (final m) => m
                       ..name = eventType.name
-                      ..docs.add('/// The ${eventType.name} event.')
+                      ..docs.add(
+                        surface.eventComments[eventType] ??
+                            '/// The ${eventType.name} event.',
+                      )
                       ..requiredParameters.add(engineParameter)
                       ..returns = refer('void'),
                   ),
@@ -103,7 +106,10 @@ class EditorCodeGenerator {
                   Method((final m) {
                     m
                       ..name = event.name
-                      ..docs.add('/// The ${event.name} event.')
+                      ..docs.add(
+                        object.eventComments[event] ??
+                            '/// The ${event.name} event.',
+                      )
                       ..returns = refer('void')
                       ..requiredParameters.add(engineParameter);
                   }),
@@ -149,9 +155,7 @@ class EditorCodeGenerator {
                     ..type = MethodType.getter;
                 });
               }(),
-          ])
-          ..methods.addAll(
-            ['onEnter', 'onLeave'].map(
+            ...['onEnter', 'onLeave'].map(
               (final name) => Method((final m) {
                 m
                   ..name = name
@@ -161,7 +165,7 @@ class EditorCodeGenerator {
                   ..requiredParameters.add(engineParameter);
               }),
             ),
-          ),
+          ]),
       );
       final lib = Library((final lib) {
         lib

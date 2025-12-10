@@ -1,5 +1,5 @@
 name: angstrom_editor
-version: 0.1.0
+version: 0.2.0
 description: "A package which allows you to embed a level editor into an [Angstrom](https://pub.dev/packages/angstrom) game."
 homepage: https://github.com/chrisnorman7/angstrom_editor
 environment:
