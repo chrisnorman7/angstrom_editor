@@ -174,10 +174,10 @@ class AngstromEditorState extends State<AngstromEditor> {
                   loadMode: LoadMode.disk,
                   looping: true,
                 );
-          late MenuController controller;
+          final controller = MenuController();
           return MaybePlaySoundSemantics(
             sound: sound,
-            child: PerformableActionsBuilder(
+            child: PerformableActionsListTile(
               actions: [
                 PerformableAction(
                   name: 'Rename',
@@ -363,28 +363,19 @@ class AngstromEditorState extends State<AngstromEditor> {
                 PerformableAction(
                   name: 'CLose Menu',
                   activator: const SingleActivator(LogicalKeyboardKey.f9),
-                  invoke: menuController.toggle,
+                  invoke: controller.toggle,
                 ),
               ],
-              builder: (final builderContext, final menuController) {
-                controller = menuController;
-                return ListTile(
-                  autofocus: index == _lastIndex,
-                  title: Text(editorRoom.name),
-                  subtitle: musicReference == null
-                      ? null
-                      : SoundReferenceText(soundReference: musicReference),
-                  trailing: IconButton(
-                    onPressed: menuController.toggle,
-                    icon: const Icon(Icons.more_vert),
-                    tooltip: 'Menu',
-                  ),
-                  onTap: () {
-                    _lastIndex = index;
-                    context.pushWidgetBuilder(
-                      (_) => RoomEditor(editorContext: editorContext),
-                    );
-                  },
+              autofocus: index == _lastIndex,
+              controller: controller,
+              title: Text(editorRoom.name),
+              subtitle: musicReference == null
+                  ? null
+                  : SoundReferenceText(soundReference: musicReference),
+              onTap: () {
+                _lastIndex = index;
+                context.pushWidgetBuilder(
+                  (_) => RoomEditor(editorContext: editorContext),
                 );
               },
             ),
