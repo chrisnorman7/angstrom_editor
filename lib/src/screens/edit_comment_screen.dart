@@ -1,4 +1,5 @@
 import 'package:backstreets_widgets/screens.dart';
+import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
 /// A screen for editing a [comment].
@@ -55,14 +56,16 @@ class EditCommentScreenState extends State<EditCommentScreen> {
       final comment = _commentController.text;
       widget.onChange(comment.isEmpty ? null : comment);
     },
-    child: SimpleScaffold(
-      title: widget.title,
-      body: TextField(
-        autofocus: true,
-        controller: _commentController,
-        decoration: InputDecoration(labelText: widget.inputLabel),
-        expands: true,
-        maxLines: null,
+    child: Cancel(
+      child: SimpleScaffold(
+        title: widget.title,
+        body: TextField(
+          autofocus: true,
+          controller: _commentController,
+          decoration: InputDecoration(labelText: widget.inputLabel),
+          expands: true,
+          maxLines: null,
+        ),
       ),
     ),
   );

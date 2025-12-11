@@ -8,6 +8,7 @@ import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:path/path.dart' as path;
@@ -173,9 +174,10 @@ class AngstromEditorState extends State<AngstromEditor> {
                   loadMode: LoadMode.disk,
                   looping: true,
                 );
+          late MenuController controller;
           return MaybePlaySoundSemantics(
             sound: sound,
-            child: PerformableActionsListTile(
+            child: PerformableActionsBuilder(
               actions: [
                 PerformableAction(
                   name: 'Rename',
@@ -185,6 +187,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                     context.pushWidgetBuilder(
                       (final innerContext) => GetText(
                         onDone: (final value) {
+                          controller.close();
                           innerContext.pop();
                           editorRoom.name = value;
                           editorContext.save();
@@ -201,24 +204,28 @@ class AngstromEditorState extends State<AngstromEditor> {
                   PerformableAction(
                     name: 'Set music',
                     activator: editMusicShortcut,
-                    invoke: () => context.pushWidgetBuilder(
-                      (_) => SelectSound(
-                        soundPaths: widget.musicSoundPaths,
-                        getSound: getSound,
-                        setSound: (final value) {
-                          editorRoom.music = SoundReference(
-                            path: value,
-                            volume: musicReference?.volume ?? 0.7,
-                          );
-                          editorContext.save();
-                          setState(() {});
-                        },
-                        looping: true,
-                        soundPath: musicReference?.path,
-                        title: 'Select Music',
-                        volume: musicReference?.volume ?? 0.7,
-                      ),
-                    ),
+                    invoke: () {
+                      _lastIndex = index;
+                      context.pushWidgetBuilder(
+                        (_) => SelectSound(
+                          soundPaths: widget.musicSoundPaths,
+                          getSound: getSound,
+                          setSound: (final value) {
+                            controller.close();
+                            editorRoom.music = SoundReference(
+                              path: value,
+                              volume: musicReference?.volume ?? 0.7,
+                            );
+                            editorContext.save();
+                            setState(() {});
+                          },
+                          looping: true,
+                          soundPath: musicReference?.path,
+                          title: 'Select Music',
+                          volume: musicReference?.volume ?? 0.7,
+                        ),
+                      );
+                    },
                   ),
                 ] else ...[
                   if (musicReference.volume > 0.0)
@@ -226,6 +233,8 @@ class AngstromEditorState extends State<AngstromEditor> {
                       name: 'Decrease music newVolume',
                       activator: moveDownShortcut,
                       invoke: () {
+                        _lastIndex = index;
+                        controller.close();
                         editorRoom.music = musicReference.path.asSoundReference(
                           volume: max(
                             0.0,
@@ -240,6 +249,8 @@ class AngstromEditorState extends State<AngstromEditor> {
                     name: 'Increase music volume',
                     activator: moveUpShortcut,
                     invoke: () {
+                      _lastIndex = index;
+                      controller.close();
                       editorRoom.music = musicReference.path.asSoundReference(
                         volume:
                             musicReference.volume + widget.volumeChangeAmount,
@@ -253,6 +264,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                     activator: editMusicShortcut,
                     invoke: () {
                       _lastIndex = index;
+                      controller.close();
                       editorRoom.music = null;
                       editorContext.save();
                       setState(() {});
@@ -267,6 +279,8 @@ class AngstromEditorState extends State<AngstromEditor> {
                     name: event.name,
                     checked: editorRoom.events.contains(event),
                     invoke: () {
+                      _lastIndex = index;
+                      controller.close();
                       if (editorRoom.events.contains(event)) {
                         editorRoom.events.remove(event);
                       } else {
@@ -278,33 +292,49 @@ class AngstromEditorState extends State<AngstromEditor> {
                   ),
                   if (editorRoom.events.contains(event))
                     PerformableAction(
-                      name: 'Comment for ${event.name}',
-                      invoke: () => context.pushWidgetBuilder(
-                        (_) => EditCommentScreen(
-                          onChange: (final value) {
-                            if (value == null) {
-                              if (editorRoom.eventComments.containsKey(event)) {
-                                editorRoom.eventComments.remove(event);
+                      name:
+                          editorRoom.eventComments[event] ??
+                          'Comment for ${event.name}',
+                      invoke: () {
+                        _lastIndex = index;
+                        controller.close();
+                        context.pushWidgetBuilder(
+                          (_) => EditCommentScreen(
+                            onChange: (final value) {
+                              if (value == null) {
+                                if (editorRoom.eventComments.containsKey(
+                                  event,
+                                )) {
+                                  editorRoom.eventComments.remove(event);
+                                }
+                              } else {
+                                editorRoom.eventComments[event] = value;
                               }
-                            } else {
-                              editorRoom.eventComments[event] = value;
-                            }
-                            editorContext.save();
-                            setState(() {});
-                          },
-                        ),
-                      ),
+                              editorContext.save();
+                              setState(() {});
+                            },
+                            comment: editorRoom.eventComments[event],
+                            inputLabel: event.name,
+                          ),
+                        );
+                      },
                     ),
                 ],
                 PerformableAction(
                   name: 'Copy ID',
                   activator: copyExtraShortcut,
-                  invoke: room.id.copyToClipboard,
+                  invoke: () {
+                    _lastIndex = index;
+                    controller.close();
+                    room.id.copyToClipboard();
+                  },
                 ),
                 PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,
                   invoke: () {
+                    _lastIndex = index;
+                    controller.close();
                     for (final otherRoom in rooms) {
                       for (final object in otherRoom.editorRoom.objects) {
                         if (object.door?.targetRoomId == room.id) {
@@ -330,16 +360,31 @@ class AngstromEditorState extends State<AngstromEditor> {
                     );
                   },
                 ),
+                PerformableAction(
+                  name: 'CLose Menu',
+                  activator: const SingleActivator(LogicalKeyboardKey.f9),
+                  invoke: menuController.toggle,
+                ),
               ],
-              autofocus: index == _lastIndex,
-              title: Text(editorRoom.name),
-              subtitle: musicReference == null
-                  ? null
-                  : SoundReferenceText(soundReference: musicReference),
-              onTap: () {
-                _lastIndex = index;
-                context.pushWidgetBuilder(
-                  (_) => RoomEditor(editorContext: editorContext),
+              builder: (final builderContext, final menuController) {
+                controller = menuController;
+                return ListTile(
+                  autofocus: index == _lastIndex,
+                  title: Text(editorRoom.name),
+                  subtitle: musicReference == null
+                      ? null
+                      : SoundReferenceText(soundReference: musicReference),
+                  trailing: IconButton(
+                    onPressed: menuController.toggle,
+                    icon: const Icon(Icons.more_vert),
+                    tooltip: 'Menu',
+                  ),
+                  onTap: () {
+                    _lastIndex = index;
+                    context.pushWidgetBuilder(
+                      (_) => RoomEditor(editorContext: editorContext),
+                    );
+                  },
                 );
               },
             ),
