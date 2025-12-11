@@ -174,6 +174,7 @@ class RoomObjectListTile extends StatelessWidget {
                     }
                     onChange();
                   },
+                  comment: object.eventComments[event],
                 ),
               ),
             ),

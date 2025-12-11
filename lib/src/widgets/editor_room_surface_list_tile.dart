@@ -188,6 +188,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                       }
                       onChange();
                     },
+                    comment: surface.eventComments[event],
                   ),
                 ),
               ),

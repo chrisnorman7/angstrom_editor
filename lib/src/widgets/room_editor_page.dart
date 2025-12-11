@@ -357,6 +357,16 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                 'Point(${coordinates.x}, ${coordinates.y})'.copyToClipboard(),
           ),
         ];
+        shortcuts.add(
+          GameShortcut(
+            title: 'Show keyboard shortcuts',
+            shortcut: GameShortcutsShortcut.slash,
+            shiftKey: true,
+            onStart: (final innerContext) => innerContext.pushWidgetBuilder(
+              (_) => GameShortcutsHelpScreen(shortcuts: shortcuts),
+            ),
+          ),
+        );
         return EditorContextWrapper(
           engine: engine,
           editorContext: _editorContext,

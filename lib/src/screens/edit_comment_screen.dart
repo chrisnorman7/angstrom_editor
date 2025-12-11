@@ -7,7 +7,7 @@ class EditCommentScreen extends StatefulWidget {
   /// Create an instance.
   const EditCommentScreen({
     required this.onChange,
-    this.comment,
+    required this.comment,
     this.title = 'Edit Comment',
     this.inputLabel = 'Comment',
     super.key,
