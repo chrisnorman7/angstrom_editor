@@ -217,7 +217,6 @@ class RoomObjectListTile extends StatelessWidget {
         ],
         PerformableAction(
           name: 'Copy door code',
-          activator: copyExtraShortcut,
           invoke: () {
             final buffer = StringBuffer()
               ..writeln('Door(')
@@ -229,6 +228,11 @@ class RoomObjectListTile extends StatelessWidget {
               ..writeln(').onActivate(engine);');
             buffer.toString().copyToClipboard();
           },
+        ),
+        PerformableAction(
+          name: 'Copy ID',
+          activator: copyExtraShortcut,
+          invoke: object.id.copyToClipboard,
         ),
         PerformableAction(
           name: 'Delete',

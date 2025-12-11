@@ -43,10 +43,9 @@ class EditorCodeGenerator {
 
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
-    final angstromEngineRef = refer(
-      'AngstromEngine',
-      'package:angstrom/angstrom.dart',
-    );
+    final nonVirtualAnnotation = refer('nonVirtual', 'package:meta/meta.dart');
+    const angstromPackage = 'package:angstrom/angstrom.dart';
+    final angstromEngineRef = refer('AngstromEngine', angstromPackage);
     final engineParameter = Parameter((final p) {
       p
         ..name = 'engine'
@@ -86,10 +85,12 @@ class EditorCodeGenerator {
               ),
           ),
       ];
+      final soundReferenceRefer = refer('SoundReference', angstromPackage);
       final objectClasses = [
         for (final object in editorRoom.objects)
           Class((final c) {
             final door = object.door;
+            final ambiance = object.ambiance;
             c
               ..name = '${object.name.pascalCase}$base'
               ..abstract = true
@@ -100,7 +101,85 @@ class EditorCodeGenerator {
                     ..constant = true
                     ..docs.add('Create an instance.'.asDocComment);
                 }),
-              );
+              )
+              ..methods.addAll([
+                Method((final m) {
+                  m
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..name = 'id'
+                    ..docs.add('The ID of this object.'.asDocComment)
+                    ..body = Code('${literalString(object.id)}')
+                    ..type = MethodType.getter
+                    ..lambda = true
+                    ..returns = refer('String');
+                }),
+                Method((final m) {
+                  m
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..name = 'name'
+                    ..docs.add('The name of the object.'.asDocComment)
+                    ..body = Code('${literalString(object.name)}')
+                    ..lambda = true
+                    ..returns = refer('String')
+                    ..type = MethodType.getter;
+                }),
+                Method((final m) {
+                  m
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..docs.add(
+                      'The point where this object will start out in the room.'
+                          .asDocComment,
+                    )
+                    ..name = 'startCoordinates'
+                    ..body = Code.scope((final allocate) {
+                      final point = allocate(refer('Point', 'dart:math'));
+                      return 'const $point(${object.x}, ${object.y})';
+                    })
+                    ..lambda = true
+                    ..returns = TypeReference((final t) {
+                      t
+                        ..symbol = 'Point'
+                        ..url = 'dart:math'
+                        ..types.add(refer('int'));
+                    })
+                    ..type = MethodType.getter;
+                }),
+                Method((final m) {
+                  m
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..docs.add(
+                      // ignore: lines_longer_than_80_chars
+                      'The max distance at which the [ambiance] will play for this object.'
+                          .asDocComment,
+                    )
+                    ..name = 'ambianceMaxDistance'
+                    ..body = Code('${object.ambianceMaxDistance}')
+                    ..lambda = true
+                    ..returns = refer('int')
+                    ..type = MethodType.getter;
+                }),
+                if (ambiance != null)
+                  Method((final m) {
+                    m
+                      ..annotations.add(nonVirtualAnnotation)
+                      ..docs.add('The ambiance for this object.'.asDocComment)
+                      ..name = 'ambiance'
+                      ..body = Code.scope((final allocate) {
+                        final soundReference = allocate(soundReferenceRefer);
+                        final buffer = StringBuffer()
+                          ..writeln('const $soundReference(')
+                          ..writeln('path: ${literalString(ambiance.path)},');
+                        if (ambiance.volume != 0.7) {
+                          buffer.writeln('volume: ${ambiance.volume},');
+                        }
+                        buffer.writeln(')');
+                        return buffer.toString();
+                      })
+                      ..lambda = true
+                      ..returns = soundReferenceRefer
+                      ..type = MethodType.getter;
+                  }),
+              ]);
             for (final event in object.events) {
               if (event != AngstromEventType.onActivate || door == null) {
                 c.methods.add(
