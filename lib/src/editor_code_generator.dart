@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:angstrom/angstrom.dart';
 import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
@@ -41,8 +42,25 @@ class EditorCodeGenerator {
   /// The filename where the exports for rooms will be written.
   final String roomExportsFilename;
 
+  /// Return a sound [reference] as code.
+  Code _soundReferenceCode(final SoundReference reference) =>
+      Code.scope((final allocate) {
+        final soundReference = allocate(
+          refer('SoundReference', 'package:angstrom/angstrom.dart'),
+        );
+        final buffer = StringBuffer()
+          ..writeln('const $soundReference(')
+          ..writeln('path: ${literalString(reference.path)},');
+        if (reference.volume != 0.7) {
+          buffer.writeln('volume: ${reference.volume},');
+        }
+        buffer.writeln(')');
+        return buffer.toString();
+      });
+
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
+    final string = refer('String');
     final nonVirtualAnnotation = refer('nonVirtual', 'package:meta/meta.dart');
     const angstromPackage = 'package:angstrom/angstrom.dart';
     final angstromEngineRef = refer('AngstromEngine', angstromPackage);
@@ -54,15 +72,17 @@ class EditorCodeGenerator {
     for (final room in rooms) {
       final roomClassName = room.editorRoom.name.pascalCase;
       final editorRoom = room.editorRoom;
+      final soundReferenceRefer = refer('SoundReference', angstromPackage);
       final surfaceClasses = [
         for (final surface in editorRoom.surfaces)
-          Class(
-            (final c) => c
+          Class((final c) {
+            final ambiance = surface.ambiance;
+            c
               ..abstract = true
               ..name = '$roomClassName${surface.name.pascalCase}$base'
               ..docs.add('Events for ${surface.name}.'.asDocComment)
-              ..methods.addAll(
-                surface.events.map(
+              ..methods.addAll([
+                ...surface.events.map(
                   (final eventType) => Method(
                     (final m) => m
                       ..name = eventType.name
@@ -75,17 +95,60 @@ class EditorCodeGenerator {
                       ..returns = refer('void'),
                   ),
                 ),
-              )
+                Method((final m) {
+                  m
+                    ..name = 'id'
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..docs.add('The ID of this surface.'.asDocComment)
+                    ..body = Code('${literalString(surface.id)}')
+                    ..lambda = true
+                    ..returns = string
+                    ..type = MethodType.getter;
+                }),
+                Method((final m) {
+                  m
+                    ..name = 'name'
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..docs.add('The name of this surface.'.asDocComment)
+                    ..body = Code('${literalString(surface.name)}')
+                    ..lambda = true
+                    ..returns = string
+                    ..type = MethodType.getter;
+                }),
+                Method((final m) {
+                  m
+                    ..name = 'isWall'
+                    ..annotations.add(nonVirtualAnnotation)
+                    ..docs.add('Whether this surface is a wall.'.asDocComment)
+                    ..body = Code('${literalBool(surface.isWall)}')
+                    ..lambda = true
+                    ..returns = refer('bool')
+                    ..type = MethodType.getter;
+                }),
+                if (ambiance != null)
+                  Method((final m) {
+                    m
+                      ..name = 'ambiance'
+                      ..annotations.add(nonVirtualAnnotation)
+                      ..docs.add(
+                        'The sound which plays while on this surface.'
+                            .asDocComment,
+                      )
+                      ..body = _soundReferenceCode(ambiance)
+                      ..lambda = true
+                      ..returns = soundReferenceRefer
+                      ..type = MethodType.getter;
+                  }),
+              ])
               ..constructors.add(
                 Constructor((final c) {
                   c
                     ..constant = true
                     ..docs.add('Create an instance.'.asDocComment);
                 }),
-              ),
-          ),
+              );
+          }),
       ];
-      final soundReferenceRefer = refer('SoundReference', angstromPackage);
       final objectClasses = [
         for (final object in editorRoom.objects)
           Class((final c) {
@@ -111,7 +174,7 @@ class EditorCodeGenerator {
                     ..body = Code('${literalString(object.id)}')
                     ..type = MethodType.getter
                     ..lambda = true
-                    ..returns = refer('String');
+                    ..returns = string;
                 }),
                 Method((final m) {
                   m
@@ -120,17 +183,17 @@ class EditorCodeGenerator {
                     ..docs.add('The name of the object.'.asDocComment)
                     ..body = Code('${literalString(object.name)}')
                     ..lambda = true
-                    ..returns = refer('String')
+                    ..returns = string
                     ..type = MethodType.getter;
                 }),
                 Method((final m) {
                   m
+                    ..name = 'startCoordinates'
                     ..annotations.add(nonVirtualAnnotation)
                     ..docs.add(
                       'The point where this object will start out in the room.'
                           .asDocComment,
                     )
-                    ..name = 'startCoordinates'
                     ..body = Code.scope((final allocate) {
                       final point = allocate(refer('Point', 'dart:math'));
                       return 'const $point(${object.x}, ${object.y})';
@@ -146,13 +209,13 @@ class EditorCodeGenerator {
                 }),
                 Method((final m) {
                   m
+                    ..name = 'ambianceMaxDistance'
                     ..annotations.add(nonVirtualAnnotation)
                     ..docs.add(
                       // ignore: lines_longer_than_80_chars
                       'The max distance at which the [ambiance] will play for this object.'
                           .asDocComment,
                     )
-                    ..name = 'ambianceMaxDistance'
                     ..body = Code('${object.ambianceMaxDistance}')
                     ..lambda = true
                     ..returns = refer('int')
@@ -161,20 +224,10 @@ class EditorCodeGenerator {
                 if (ambiance != null)
                   Method((final m) {
                     m
+                      ..name = 'ambiance'
                       ..annotations.add(nonVirtualAnnotation)
                       ..docs.add('The ambiance for this object.'.asDocComment)
-                      ..name = 'ambiance'
-                      ..body = Code.scope((final allocate) {
-                        final soundReference = allocate(soundReferenceRefer);
-                        final buffer = StringBuffer()
-                          ..writeln('const $soundReference(')
-                          ..writeln('path: ${literalString(ambiance.path)},');
-                        if (ambiance.volume != 0.7) {
-                          buffer.writeln('volume: ${ambiance.volume},');
-                        }
-                        buffer.writeln(')');
-                        return buffer.toString();
-                      })
+                      ..body = _soundReferenceCode(ambiance)
                       ..lambda = true
                       ..returns = soundReferenceRefer
                       ..type = MethodType.getter;
@@ -313,6 +366,7 @@ class EditorCodeGenerator {
   ///
   /// Returns `true` if the build succeeds.
   bool writeEngineCode() {
+    final string = refer('String');
     final roomCodeClasses = _writeRooms().toList();
     _writeRoomExports(
       roomCodeClasses.map((final roomCode) => roomCode.filename),
@@ -323,7 +377,7 @@ class EditorCodeGenerator {
     final roomEventsMap = TypeReference((final t) {
       t
         ..symbol = 'Map'
-        ..types.addAll([refer('String'), loadedRoomEvents]);
+        ..types.addAll([string, loadedRoomEvents]);
     });
     final engineClassName = path
         .basenameWithoutExtension(engineCodePath)
