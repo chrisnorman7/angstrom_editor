@@ -16,12 +16,11 @@ EditorRoomSurface _$EditorRoomSurfaceFromJson(Map<String, dynamic> json) =>
       contactSounds: (json['contactSounds'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      events: (json['events'] as List<dynamic>)
-          .map((e) => $enumDecode(_$AngstromEventTypeEnumMap, e))
-          .toList(),
-      eventComments: (json['eventComments'] as Map<String, dynamic>).map(
-        (k, e) =>
-            MapEntry($enumDecode(_$AngstromEventTypeEnumMap, k), e as String),
+      eventCommands: (json['eventCommands'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(
+          $enumDecode(_$AngstromEventTypeEnumMap, k),
+          EditorEventCommand.fromJson(e as Map<String, dynamic>),
+        ),
       ),
       contactSoundsVolume:
           (json['contactSoundsVolume'] as num?)?.toDouble() ?? 0.7,
@@ -34,22 +33,20 @@ EditorRoomSurface _$EditorRoomSurfaceFromJson(Map<String, dynamic> json) =>
           : SoundReference.fromJson(json['ambiance'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$EditorRoomSurfaceToJson(
-  EditorRoomSurface instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'name': instance.name,
-  'points': instance.points,
-  'contactSounds': instance.contactSounds,
-  'events': instance.events.map((e) => _$AngstromEventTypeEnumMap[e]!).toList(),
-  'eventComments': instance.eventComments.map(
-    (k, e) => MapEntry(_$AngstromEventTypeEnumMap[k]!, e),
-  ),
-  'contactSoundsVolume': instance.contactSoundsVolume,
-  'isWall': instance.isWall,
-  'moveInterval': instance.moveInterval.inMicroseconds,
-  'ambiance': instance.ambiance,
-};
+Map<String, dynamic> _$EditorRoomSurfaceToJson(EditorRoomSurface instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'points': instance.points,
+      'contactSounds': instance.contactSounds,
+      'eventCommands': instance.eventCommands.map(
+        (k, e) => MapEntry(_$AngstromEventTypeEnumMap[k]!, e),
+      ),
+      'contactSoundsVolume': instance.contactSoundsVolume,
+      'isWall': instance.isWall,
+      'moveInterval': instance.moveInterval.inMicroseconds,
+      'ambiance': instance.ambiance,
+    };
 
 const _$AngstromEventTypeEnumMap = {
   AngstromEventType.onEnter: 'onEnter',

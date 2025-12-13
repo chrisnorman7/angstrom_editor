@@ -13,11 +13,11 @@ EditorRoom _$EditorRoomFromJson(Map<String, dynamic> json) => EditorRoom(
   objects: (json['objects'] as List<dynamic>)
       .map((e) => EditorRoomObject.fromJson(e as Map<String, dynamic>))
       .toList(),
-  events: (json['events'] as List<dynamic>)
-      .map((e) => $enumDecode(_$AngstromEventTypeEnumMap, e))
-      .toList(),
-  eventComments: (json['eventComments'] as Map<String, dynamic>).map(
-    (k, e) => MapEntry($enumDecode(_$AngstromEventTypeEnumMap, k), e as String),
+  eventCommands: (json['eventCommands'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(
+      $enumDecode(_$AngstromEventTypeEnumMap, k),
+      EditorEventCommand.fromJson(e as Map<String, dynamic>),
+    ),
   ),
   name: json['name'] as String? ?? 'Untitled Room',
   music: json['music'] == null
@@ -28,21 +28,19 @@ EditorRoom _$EditorRoomFromJson(Map<String, dynamic> json) => EditorRoom(
   lastPageIndex: (json['lastPageIndex'] as num?)?.toInt() ?? 0,
 );
 
-Map<String, dynamic> _$EditorRoomToJson(
-  EditorRoom instance,
-) => <String, dynamic>{
-  'surfaces': instance.surfaces,
-  'objects': instance.objects,
-  'events': instance.events.map((e) => _$AngstromEventTypeEnumMap[e]!).toList(),
-  'eventComments': instance.eventComments.map(
-    (k, e) => MapEntry(_$AngstromEventTypeEnumMap[k]!, e),
-  ),
-  'name': instance.name,
-  'music': instance.music,
-  'x': instance.x,
-  'y': instance.y,
-  'lastPageIndex': instance.lastPageIndex,
-};
+Map<String, dynamic> _$EditorRoomToJson(EditorRoom instance) =>
+    <String, dynamic>{
+      'surfaces': instance.surfaces,
+      'objects': instance.objects,
+      'eventCommands': instance.eventCommands.map(
+        (k, e) => MapEntry(_$AngstromEventTypeEnumMap[k]!, e),
+      ),
+      'name': instance.name,
+      'music': instance.music,
+      'x': instance.x,
+      'y': instance.y,
+      'lastPageIndex': instance.lastPageIndex,
+    };
 
 const _$AngstromEventTypeEnumMap = {
   AngstromEventType.onEnter: 'onEnter',

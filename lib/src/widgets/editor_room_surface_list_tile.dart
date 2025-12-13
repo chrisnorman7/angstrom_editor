@@ -161,38 +161,24 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
               AngstromEventType.onEnter,
               AngstromEventType.onMove,
               AngstromEventType.onExit,
-            ]) ...[
-              PerformableAction(
-                name: event.name,
-                checked: surface.events.contains(event),
-                invoke: () {
-                  if (surface.events.contains(event)) {
-                    surface.events.remove(event);
-                  } else {
-                    surface.events.add(event);
-                  }
-                  onChange();
-                },
-              ),
-              PerformableAction(
-                name: 'Comment for ${event.name}',
-                invoke: () => context.pushWidgetBuilder(
-                  (_) => EditCommentScreen(
-                    onChange: (final value) {
-                      if (value == null) {
-                        if (surface.eventComments.containsKey(event)) {
-                          surface.eventComments.remove(event);
-                        }
-                      } else {
-                        surface.eventComments[event] = value;
-                      }
+            ])
+              ...() {
+                final command = surface.eventCommands[event];
+                if (command == null) {
+                  return [PerformableAction(name: 'Add ${event.name}')];
+                }
+                return [
+                  PerformableAction(name: 'Edit ${event.name}'),
+                  PerformableAction(
+                    name: 'Delete ${event.name}',
+                    invoke: () {
+                      surface.eventCommands.remove(event);
+                      editorContext.save();
                       onChange();
                     },
-                    comment: surface.eventComments[event],
                   ),
-                ),
-              ),
-            ],
+                ];
+              }(),
             PerformableAction(
               name: 'delete',
               activator: deleteShortcut,

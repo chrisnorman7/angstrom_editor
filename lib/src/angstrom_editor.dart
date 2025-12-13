@@ -264,53 +264,14 @@ class AngstromEditorState extends State<AngstromEditor> {
                     },
                   ),
                 ],
-                for (final event in [
-                  AngstromEventType.onEnter,
-                  AngstromEventType.onExit,
-                ]) ...[
-                  PerformableAction(
-                    name: event.name,
-                    checked: editorRoom.events.contains(event),
-                    invoke: () {
-                      _lastIndex = index;
-                      if (editorRoom.events.contains(event)) {
-                        editorRoom.events.remove(event);
-                      } else {
-                        editorRoom.events.add(event);
-                      }
-                      editorContext.save();
-                      setState(() {});
-                    },
-                  ),
-                  if (editorRoom.events.contains(event))
-                    PerformableAction(
-                      name:
-                          editorRoom.eventComments[event] ??
-                          'Comment for ${event.name}',
-                      invoke: () {
-                        _lastIndex = index;
-                        context.pushWidgetBuilder(
-                          (_) => EditCommentScreen(
-                            onChange: (final value) {
-                              if (value == null) {
-                                if (editorRoom.eventComments.containsKey(
-                                  event,
-                                )) {
-                                  editorRoom.eventComments.remove(event);
-                                }
-                              } else {
-                                editorRoom.eventComments[event] = value;
-                              }
-                              editorContext.save();
-                              setState(() {});
-                            },
-                            comment: editorRoom.eventComments[event],
-                            inputLabel: event.name,
-                          ),
-                        );
-                      },
-                    ),
-                ],
+                ...EventCommandsPerformableActions(
+                  events: [AngstromEventType.onEnter, AngstromEventType.onExit],
+                  map: editorRoom.eventCommands,
+                  save: () {
+                    editorContext.save();
+                    setState(() {});
+                  },
+                ).actions,
                 PerformableAction(
                   name: 'Copy ID',
                   activator: copyExtraShortcut,
@@ -326,14 +287,16 @@ class AngstromEditorState extends State<AngstromEditor> {
                     _lastIndex = index;
                     for (final otherRoom in rooms) {
                       for (final object in otherRoom.editorRoom.objects) {
-                        if (object.door?.targetRoomId == room.id) {
-                          context.showMessage(
-                            message:
-                                // ignore: lines_longer_than_80_chars
-                                'You cannot delete ${room.editorRoom.name} because it is used as the target for the ${object.name} door.',
-                          );
-                          return;
-                        } else {}
+                        for (final command in object.eventCommands.values) {
+                          if (command.door?.targetRoomId == room.id) {
+                            context.showMessage(
+                              message:
+                                  // ignore: lines_longer_than_80_chars
+                                  'You cannot delete ${room.editorRoom.name} because it is used as the target for the ${object.name} door.',
+                            );
+                            return;
+                          }
+                        }
                       }
                     }
                     context.showConfirmMessage(
@@ -428,13 +391,9 @@ class AngstromEditorState extends State<AngstromEditor> {
           name: 'Untitled Surface',
           points: [const ObjectCoordinates(0, 0)],
           contactSounds: widget.footsteps.first.soundPaths,
-          events: [],
-          eventComments: {},
         ),
       ],
       objects: [],
-      events: [],
-      eventComments: {},
     );
     final now = DateTime.now();
     final month = now.month.toString().padLeft(2, '0');

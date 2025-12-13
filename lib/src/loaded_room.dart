@@ -48,7 +48,6 @@ class LoadedRoom extends Room {
   /// The objects in this room.
   @override
   List<RoomObject> get objects => editorRoom.objects.map((final object) {
-    final door = object.door;
     final objectEvents =
         events.objectEvents[object.id] ?? const EditorRoomObjectEvents();
     return RoomObject(
@@ -58,14 +57,7 @@ class LoadedRoom extends Room {
       ambiance: object.ambiance,
       ambianceMaxDistance: object.ambianceMaxDistance,
       onApproach: objectEvents.onApproach,
-      onActivate: door == null
-          ? objectEvents.onActivate
-          : Door(
-              coordinates: door.coordinates,
-              destinationId: door.targetRoomId,
-              stopPlayer: door.stopPlayer,
-              useSound: door.useSound,
-            ).onActivate,
+      onActivate: objectEvents.onActivate,
       onLeave: objectEvents.onLeave,
     );
   }).toList();

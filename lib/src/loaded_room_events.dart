@@ -23,4 +23,14 @@ class LoadedRoomEvents {
 
   /// The function to call when the player leaves the room.
   final AngstromCallback? onLeave;
+
+  /// Whether this instance has any events.
+  ///
+  /// Returns `true` if any of [surfaceEvents], [objectEvents], [onEnter], or
+  /// [onLeave] are not empty or not `null`.
+  bool get hasEvents =>
+      surfaceEvents.isNotEmpty ||
+      objectEvents.isNotEmpty ||
+      onEnter != null ||
+      onLeave != null;
 }

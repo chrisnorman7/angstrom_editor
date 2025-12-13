@@ -34,7 +34,7 @@ class AssetLoadingAngstromEngine extends AngstromEngine {
     final editorRoom = EditorRoom.fromJson(json);
     final loadedRoomEvents = roomEvents[key];
     for (final surface in editorRoom.surfaces) {
-      for (final eventType in surface.events) {
+      for (final eventType in surface.eventCommands.keys) {
         if (loadedRoomEvents == null) {
           throw StateError(
             // ignore: lines_longer_than_80_chars

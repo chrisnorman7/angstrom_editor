@@ -13,14 +13,13 @@ class EditorRoom {
   EditorRoom({
     required this.surfaces,
     required this.objects,
-    required this.events,
-    required this.eventComments,
+    final EventsMap? eventCommands,
     this.name = 'Untitled Room',
     this.music,
     this.x = 0,
     this.y = 0,
     this.lastPageIndex = 0,
-  });
+  }) : eventCommands = eventCommands ?? {};
 
   /// Create an instance from a JSON object.
   factory EditorRoom.fromJson(final Map<String, dynamic> json) =>
@@ -32,11 +31,8 @@ class EditorRoom {
   /// The objects which are part of this room.
   final List<EditorRoomObject> objects;
 
-  /// The events that will need coding.
-  final List<AngstromEventType> events;
-
-  /// The comments for [events].
-  final Map<AngstromEventType, String> eventComments;
+  /// The events that this room supports.
+  final EventsMap eventCommands;
 
   /// The name of this room.
   String name;

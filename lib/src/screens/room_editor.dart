@@ -83,8 +83,6 @@ class _RoomEditorState extends State<RoomEditor> {
       name: 'Untitled Surface',
       points: [],
       contactSounds: widget.editorContext.footsteps.first.soundPaths,
-      events: [],
-      eventComments: {},
     );
     widget.editorContext.room.editorRoom.surfaces.add(surface);
     widget.editorContext.save();
@@ -95,8 +93,6 @@ class _RoomEditorState extends State<RoomEditor> {
   void _newObject() {
     final object = EditorRoomObject(
       id: widget.editorContext.newId(),
-      events: [],
-      eventComments: {},
       name: 'Untitled Object',
     );
     widget.editorContext.room.editorRoom.objects.add(object);

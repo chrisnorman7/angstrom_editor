@@ -42,7 +42,6 @@ class RoomObjectListTile extends StatelessWidget {
         buffer.write(' (${surface.name})');
       }
     }
-    final door = object.door;
     return PerformableActionsListTile(
       actions: [
         PerformableAction(
@@ -142,79 +141,18 @@ class RoomObjectListTile extends StatelessWidget {
             onChange();
           },
         ),
-        for (final event in [
-          AngstromEventType.onApproach,
-          if (door == null) AngstromEventType.onActivate,
-          AngstromEventType.onLeave,
-        ]) ...[
-          PerformableAction(
-            name: event.name,
-            checked: object.events.contains(event),
-            invoke: () {
-              if (object.events.contains(event)) {
-                object.events.remove(event);
-              } else {
-                object.events.add(event);
-              }
-              onChange();
-            },
-          ),
-          if (object.events.contains(event))
-            PerformableAction(
-              name: 'Comment for ${event.name}',
-              invoke: () => context.pushWidgetBuilder(
-                (_) => EditCommentScreen(
-                  onChange: (final value) {
-                    if (value == null) {
-                      if (object.eventComments.containsKey(event)) {
-                        object.eventComments.remove(event);
-                      }
-                    } else {
-                      object.eventComments[event] = value;
-                    }
-                    onChange();
-                  },
-                  comment: object.eventComments[event],
-                ),
-              ),
-            ),
-        ],
-        if (door == null)
-          PerformableAction(
-            name: 'Make door',
-            activator: doorShortcut,
-            invoke: () => context.pushWidgetBuilder(
-              (_) => SelectDoorTargetScreen(
-                roomsDirectory: editorContext.file.parent,
-                onChange: (final value) {
-                  object.door = EditorDoor(
-                    targetObjectId: value.object.id,
-                    x: value.object.x,
-                    y: value.object.y,
-                    targetRoomId: value.room.id,
-                  );
-                  onChange();
-                },
-                getSound: editorContext.getSound,
-              ),
-            ),
-          )
-        else ...[
-          PerformableAction(
-            name: 'Edit Door',
-            activator: doorShortcut,
-            invoke: () => context.pushWidgetBuilder(
-              (_) => EditDoorScreen(editorContext: editorContext, door: door),
-            ),
-          ),
-          PerformableAction(
-            name: 'Remove door',
-            invoke: () {
-              object.door = null;
-              onChange();
-            },
-          ),
-        ],
+        ...EventCommandsPerformableActions(
+          events: [
+            AngstromEventType.onApproach,
+            AngstromEventType.onActivate,
+            AngstromEventType.onLeave,
+          ],
+          map: object.eventCommands,
+          save: () {
+            editorContext.save();
+            onChange();
+          },
+        ).actions,
         PerformableAction(
           name: 'Copy door code',
           invoke: () {
@@ -239,14 +177,31 @@ class RoomObjectListTile extends StatelessWidget {
           activator: deleteShortcut,
           invoke: () {
             for (final room in editorContext.file.parent.rooms) {
-              for (final roomObject in room.editorRoom.objects) {
-                if (roomObject.door?.targetObjectId == object.id) {
-                  context.showMessage(
-                    message:
-                        // ignore: lines_longer_than_80_chars
-                        'You cannot delete ${object.name} because it is used as the target for the ${roomObject.name} door.',
-                  );
-                  return;
+              final editorRoom = room.editorRoom;
+              for (final surface in editorRoom.surfaces) {
+                for (final command in surface.eventCommands.values) {
+                  final door = command.door;
+                  if (door?.targetObjectId == object.id) {
+                    context.showMessage(
+                      message:
+                          // ignore: lines_longer_than_80_chars
+                          'You cannot delete ${object.name} because it is used as the target for the ${surface.name} door.',
+                    );
+                    return;
+                  }
+                }
+              }
+              for (final roomObject in editorRoom.objects) {
+                for (final command in roomObject.eventCommands.values) {
+                  final door = command.door;
+                  if (door?.targetObjectId == object.id) {
+                    context.showMessage(
+                      message:
+                          // ignore: lines_longer_than_80_chars
+                          'You cannot delete ${object.name} because it is used as the target for the ${roomObject.name} door.',
+                    );
+                    return;
+                  }
                 }
               }
             }

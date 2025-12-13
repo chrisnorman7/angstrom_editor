@@ -58,6 +58,30 @@ class EditorCodeGenerator {
         return buffer.toString();
       });
 
+  /// Returns the code for the given [command].
+  Code _editorEventCommandCode({
+    required final AngstromEventType eventType,
+    required final EditorEventCommand command,
+  }) => Code.scope((final allocate) {
+    final buffer = StringBuffer();
+    final speakText = command.spokenText;
+    if (speakText != null) {
+      buffer.writeln('engine.speak(${literalString(speakText)});');
+    }
+    final interfaceSoundReference = command.interfaceSound;
+    if (interfaceSoundReference != null) {
+      buffer
+        ..writeln('engine.playInterfaceSound(')
+        ..write(_soundReferenceCode(interfaceSoundReference))
+        ..writeln(',')
+        ..writeln(');');
+    }
+    if (command.hasHandler) {
+      buffer.writeln('${eventType.name}(engine);');
+    }
+    return buffer.toString();
+  });
+
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
     final string = refer('String');
@@ -82,18 +106,20 @@ class EditorCodeGenerator {
               ..name = '$roomClassName${surface.name.pascalCase}$base'
               ..docs.add('Events for ${surface.name}.'.asDocComment)
               ..methods.addAll([
-                ...surface.events.map(
-                  (final eventType) => Method(
-                    (final m) => m
+                ...surface.eventCommands.entries.map(
+                  (final entry) => Method((final m) {
+                    final eventType = entry.key;
+                    final command = entry.value;
+                    m
                       ..name = eventType.name
-                      ..docs.add(
-                        (surface.eventComments[eventType] ??
-                                'The ${eventType.name} event.')
-                            .asDocComment,
-                      )
+                      ..docs.add(command.comment.asDocComment)
                       ..requiredParameters.add(engineParameter)
-                      ..returns = refer('void'),
-                  ),
+                      ..returns = refer('void')
+                      ..body = _editorEventCommandCode(
+                        eventType: eventType,
+                        command: command,
+                      );
+                  }),
                 ),
                 Method((final m) {
                   m
@@ -152,7 +178,6 @@ class EditorCodeGenerator {
       final objectClasses = [
         for (final object in editorRoom.objects)
           Class((final c) {
-            final door = object.door;
             final ambiance = object.ambiance;
             c
               ..name = '${object.name.pascalCase}$base'
@@ -233,22 +258,21 @@ class EditorCodeGenerator {
                       ..type = MethodType.getter;
                   }),
               ]);
-            for (final event in object.events) {
-              if (event != AngstromEventType.onActivate || door == null) {
-                c.methods.add(
-                  Method((final m) {
-                    m
-                      ..name = event.name
-                      ..docs.add(
-                        (object.eventComments[event] ??
-                                'The ${event.name} event.')
-                            .asDocComment,
-                      )
-                      ..returns = refer('void')
-                      ..requiredParameters.add(engineParameter);
-                  }),
-                );
-              }
+            for (final MapEntry(key: eventType, value: command)
+                in object.eventCommands.entries) {
+              c.methods.add(
+                Method((final m) {
+                  m
+                    ..name = eventType.name
+                    ..docs.add(command.comment.asDocComment)
+                    ..returns = refer('void')
+                    ..requiredParameters.add(engineParameter)
+                    ..body = _editorEventCommandCode(
+                      eventType: eventType,
+                      command: command,
+                    );
+                }),
+              );
             }
           }),
       ];
@@ -291,17 +315,18 @@ class EditorCodeGenerator {
                     ..type = MethodType.getter;
                 });
               }(),
-            for (final event in editorRoom.events)
+            for (final MapEntry(key: eventType, value: command)
+                in editorRoom.eventCommands.entries)
               Method((final m) {
                 m
-                  ..name = event.name
-                  ..docs.add(
-                    (editorRoom.eventComments[event] ??
-                            'The `Room.${event.name}` event.')
-                        .asDocComment,
-                  )
+                  ..name = eventType.name
+                  ..docs.add(command.comment.asDocComment)
+                  ..requiredParameters.add(engineParameter)
                   ..returns = const Reference('void')
-                  ..requiredParameters.add(engineParameter);
+                  ..body = _editorEventCommandCode(
+                    eventType: eventType,
+                    command: command,
+                  );
               }),
           ]),
       );
@@ -366,6 +391,7 @@ class EditorCodeGenerator {
   ///
   /// Returns `true` if the build succeeds.
   bool writeEngineCode() {
+    const commandSuffix = 'Command';
     final string = refer('String');
     final roomCodeClasses = _writeRooms().toList();
     _writeRoomExports(
@@ -388,6 +414,9 @@ class EditorCodeGenerator {
     );
     final dartFile = File(engineCodePath);
     try {
+      final roomsWithEvents = roomCodeClasses
+          .where((final roomCode) => roomCode.room.events.hasEvents)
+          .toList();
       final engineClass = Class((final c) {
         c
           ..name = engineClassName
@@ -412,7 +441,7 @@ class EditorCodeGenerator {
                         ..required = true;
                     }),
                   ),
-                  ...roomCodeClasses.map((final roomCode) {
+                  ...roomsWithEvents.map((final roomCode) {
                     final room = roomCode.room.editorRoom;
                     return Parameter((final p) {
                       p
@@ -426,7 +455,7 @@ class EditorCodeGenerator {
             }),
           )
           ..fields.addAll(
-            roomCodeClasses.map((final roomCode) {
+            roomsWithEvents.map((final roomCode) {
               final room = roomCode.room.editorRoom;
               final roomClass = roomCode.roomClass;
               return Field((final f) {
@@ -460,14 +489,8 @@ class EditorCodeGenerator {
                 ..type = MethodType.getter
                 ..body = Code.scope((final allocate) {
                   final buffer = StringBuffer()..writeln('{');
-                  for (var i = 0; i < rooms.length; i++) {
-                    if (i >= roomCodeClasses.length) {
-                      throw StateError(
-                        // ignore: lines_longer_than_80_chars
-                        'Code for ${rooms[i].editorRoom.name} has not been generated.',
-                      );
-                    }
-                    final roomCode = roomCodeClasses[i];
+                  for (var i = 0; i < roomsWithEvents.length; i++) {
+                    final roomCode = roomsWithEvents[i];
                     final room = roomCode.room;
                     final editorRoom = room.editorRoom;
                     final roomId = room.id.replaceAll(r'\', '/');
@@ -479,7 +502,7 @@ class EditorCodeGenerator {
                     buffer
                       ..writeln('{editorRoom.name} events.'.asInlineComment)
                       ..writeln('${literalString(roomId)}:');
-                    if (editorRoom.events.isEmpty) {
+                    if (editorRoom.eventCommands.isEmpty) {
                       buffer.write('const ');
                     }
                     buffer
@@ -487,7 +510,7 @@ class EditorCodeGenerator {
                       ..writeln('surfaceEvents: {');
                     for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
                       final surface = editorRoom.surfaces[j];
-                      if (surface.events.isEmpty) {
+                      if (surface.eventCommands.isEmpty) {
                         continue;
                       }
                       buffer
@@ -498,14 +521,14 @@ class EditorCodeGenerator {
                           // ignore: lines_longer_than_80_chars
                           '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
                         );
-                      for (final event in surface.events) {
+                      for (final event in surface.eventCommands.keys) {
                         buffer
                           ..write('${event.name}: ')
                           ..write(roomGetterName)
                           ..write('.')
                           ..writeln(surface.name.camelCase)
                           ..write('.')
-                          ..write(event.name);
+                          ..write('${event.name}$commandSuffix');
                       }
                       buffer.writeln('),');
                     }
@@ -514,12 +537,7 @@ class EditorCodeGenerator {
                       ..writeln('objectEvents: {');
                     for (var j = 0; j < roomCode.objectClasses.length; j++) {
                       final object = editorRoom.objects[j];
-                      final events = object.events.where(
-                        (final e) =>
-                            e != AngstromEventType.onActivate ||
-                            object.door == null,
-                      );
-                      if (events.isEmpty) {
+                      if (object.eventCommands.isEmpty) {
                         continue;
                       }
                       buffer
@@ -530,21 +548,23 @@ class EditorCodeGenerator {
                           // ignore: lines_longer_than_80_chars
                           '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
                         );
-                      for (final event in events) {
+                      for (final event in object.eventCommands.keys) {
                         buffer
                           ..write('${event.name}: ')
                           ..write(roomGetterName)
                           ..write('.')
                           ..writeln(object.name.camelCase)
                           ..write('.')
-                          ..write(event.name);
+                          ..write('${event.name}$commandSuffix');
                       }
                       buffer.writeln('),');
                     }
                     buffer.writeln('},');
-                    for (final event in editorRoom.events) {
+                    for (final event in editorRoom.eventCommands.keys) {
                       final name = event.name;
-                      buffer.writeln('$name: $roomGetterName.$name,');
+                      buffer.writeln(
+                        '$name: $roomGetterName.$name$commandSuffix,',
+                      );
                     }
                     buffer.writeln('),');
                   }

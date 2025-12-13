@@ -13,13 +13,12 @@ class EditorRoomSurface {
     required this.name,
     required this.points,
     required this.contactSounds,
-    required this.events,
-    required this.eventComments,
+    final EventsMap? eventCommands,
     this.contactSoundsVolume = 0.7,
     this.isWall = false,
     this.moveInterval = const Duration(milliseconds: 500),
     this.ambiance,
-  });
+  }) : eventCommands = eventCommands ?? {};
 
   /// Create an instance from a JSON object.
   factory EditorRoomSurface.fromJson(final Map<String, dynamic> json) =>
@@ -37,11 +36,8 @@ class EditorRoomSurface {
   /// The list of footstep sounds for this surface.
   final List<String> contactSounds;
 
-  /// The list of events which should be programmed on this surface.
-  final List<AngstromEventType> events;
-
-  /// The doc comments to be generated for [events].
-  final Map<AngstromEventType, String> eventComments;
+  /// The events which this surface supports.
+  final EventsMap eventCommands;
 
   /// The volume to play [contactSounds] at.
   double contactSoundsVolume;

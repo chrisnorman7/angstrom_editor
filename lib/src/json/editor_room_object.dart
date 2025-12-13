@@ -13,14 +13,12 @@ class EditorRoomObject {
   EditorRoomObject({
     required this.id,
     required this.name,
-    required this.events,
-    required this.eventComments,
+    final EventsMap? eventCommands,
     this.x = 0,
     this.y = 0,
     this.ambiance,
     this.ambianceMaxDistance = 20,
-    this.door,
-  });
+  }) : eventCommands = eventCommands ?? {};
 
   /// Create an instance from a JSON object.
   factory EditorRoomObject.fromJson(final Map<String, dynamic> json) =>
@@ -54,14 +52,9 @@ class EditorRoomObject {
   /// The distance at which the [ambiance] should be heard.
   int ambianceMaxDistance;
 
-  /// The events which this object expects.
-  final List<AngstromEventType> events;
-
-  /// The doc comments to be generated for [events].
-  final Map<AngstromEventType, String> eventComments;
-
-  /// A door which this object represents.
-  EditorDoor? door;
+  /// The events which this object supports.
+  /// The events which this surface supports.
+  final EventsMap eventCommands;
 
   /// Convert an instance to JSON.
   Map<String, dynamic> toJson() => _$EditorRoomObjectToJson(this);
