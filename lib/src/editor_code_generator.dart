@@ -8,6 +8,25 @@ import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as path;
 import 'package:recase/recase.dart';
 
+/// The type of a [String].
+final string = refer('String');
+
+/// The `nonVirtual` annotation.
+final nonVirtualAnnotation = refer('nonVirtual', 'package:meta/meta.dart');
+
+/// The name of the Angstrom package.
+const angstromPackage = 'package:angstrom/angstrom.dart';
+
+/// Refer to the engine.
+final angstromEngineRef = refer('AngstromEngine', angstromPackage);
+
+/// The engine parameter.
+final engineParameter = Parameter((final p) {
+  p
+    ..name = 'engine'
+    ..type = angstromEngineRef;
+});
+
 /// The suffix for all base classes.
 const base = 'Base';
 
@@ -41,6 +60,9 @@ class EditorCodeGenerator {
 
   /// The filename where the exports for rooms will be written.
   final String roomExportsFilename;
+
+  /// The suffix to use for command method names.
+  static const commandSuffix = 'Command';
 
   /// Return a sound [reference] as code.
   Code _soundReferenceCode(final SoundReference reference) =>
@@ -82,17 +104,36 @@ class EditorCodeGenerator {
     return buffer.toString();
   });
 
+  /// Returns an [Iterable] of [Method]s to be added to a class.
+  Iterable<Method> _commandMethods({
+    required final AngstromEventType eventType,
+    required final EditorEventCommand command,
+  }) sync* {
+    yield Method((final m) {
+      m
+        ..name = '${eventType.name}$commandSuffix'
+        ..docs.add(command.comment.asDocComment)
+        ..requiredParameters.add(engineParameter)
+        ..returns = refer('void')
+        ..body = _editorEventCommandCode(
+          eventType: eventType,
+          command: command,
+        );
+    });
+    if (command.hasHandler) {
+      yield Method((final m) {
+        m
+          ..name = eventType.name
+          ..docs.add(command.comment.asDocComment)
+          ..name = eventType.name
+          ..requiredParameters.add(engineParameter)
+          ..returns = refer('void');
+      });
+    }
+  }
+
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
-    final string = refer('String');
-    final nonVirtualAnnotation = refer('nonVirtual', 'package:meta/meta.dart');
-    const angstromPackage = 'package:angstrom/angstrom.dart';
-    final angstromEngineRef = refer('AngstromEngine', angstromPackage);
-    final engineParameter = Parameter((final p) {
-      p
-        ..name = 'engine'
-        ..type = angstromEngineRef;
-    });
     for (final room in rooms) {
       final roomClassName = room.editorRoom.name.pascalCase;
       final editorRoom = room.editorRoom;
@@ -104,23 +145,15 @@ class EditorCodeGenerator {
             c
               ..abstract = true
               ..name = '$roomClassName${surface.name.pascalCase}$base'
-              ..docs.add('Events for ${surface.name}.'.asDocComment)
+              ..docs.add('Events for ${surface.name}.'.asDocComment);
+            for (final MapEntry(key: eventType, value: command)
+                in surface.eventCommands.entries) {
+              c.methods.addAll(
+                _commandMethods(eventType: eventType, command: command),
+              );
+            }
+            c
               ..methods.addAll([
-                ...surface.eventCommands.entries.map(
-                  (final entry) => Method((final m) {
-                    final eventType = entry.key;
-                    final command = entry.value;
-                    m
-                      ..name = eventType.name
-                      ..docs.add(command.comment.asDocComment)
-                      ..requiredParameters.add(engineParameter)
-                      ..returns = refer('void')
-                      ..body = _editorEventCommandCode(
-                        eventType: eventType,
-                        command: command,
-                      );
-                  }),
-                ),
                 Method((final m) {
                   m
                     ..name = 'id'
@@ -260,24 +293,14 @@ class EditorCodeGenerator {
               ]);
             for (final MapEntry(key: eventType, value: command)
                 in object.eventCommands.entries) {
-              c.methods.add(
-                Method((final m) {
-                  m
-                    ..name = eventType.name
-                    ..docs.add(command.comment.asDocComment)
-                    ..returns = refer('void')
-                    ..requiredParameters.add(engineParameter)
-                    ..body = _editorEventCommandCode(
-                      eventType: eventType,
-                      command: command,
-                    );
-                }),
+              c.methods.addAll(
+                _commandMethods(eventType: eventType, command: command),
               );
             }
           }),
       ];
       final roomClass = Class(
-        (final b) => b
+        (final c) => c
           ..name = '$roomClassName$base'
           ..abstract = true
           ..docs.add(
@@ -317,17 +340,7 @@ class EditorCodeGenerator {
               }(),
             for (final MapEntry(key: eventType, value: command)
                 in editorRoom.eventCommands.entries)
-              Method((final m) {
-                m
-                  ..name = eventType.name
-                  ..docs.add(command.comment.asDocComment)
-                  ..requiredParameters.add(engineParameter)
-                  ..returns = const Reference('void')
-                  ..body = _editorEventCommandCode(
-                    eventType: eventType,
-                    command: command,
-                  );
-              }),
+              ..._commandMethods(eventType: eventType, command: command),
           ]),
       );
       final lib = Library((final lib) {
@@ -391,7 +404,6 @@ class EditorCodeGenerator {
   ///
   /// Returns `true` if the build succeeds.
   bool writeEngineCode() {
-    const commandSuffix = 'Command';
     final string = refer('String');
     final roomCodeClasses = _writeRooms().toList();
     _writeRoomExports(
