@@ -7,9 +7,9 @@ import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:path/path.dart' as path;
 
 /// A screen for selecting a new [soundPath] from [soundPaths].
-class SelectSound extends StatelessWidget {
+class SelectSoundScreen extends StatelessWidget {
   /// Create an instance.
-  const SelectSound({
+  const SelectSoundScreen({
     required this.soundPaths,
     required this.getSound,
     required this.setSound,

@@ -53,7 +53,7 @@ class SoundReferenceListTile extends StatelessWidget {
         autofocus: autofocus,
         title: Text(title),
         onTap: () => context.pushWidgetBuilder(
-          (_) => SelectSound(
+          (_) => SelectSoundScreen(
             soundPaths: soundPaths,
             getSound: getSound,
             setSound: (final value) => onChange(value.asSoundReference()),
@@ -113,7 +113,7 @@ class SoundReferenceListTile extends StatelessWidget {
         title: Text(title),
         subtitle: SoundReferenceText(soundReference: sound),
         onTap: () => context.pushWidgetBuilder(
-          (_) => SelectSound(
+          (_) => SelectSoundScreen(
             soundPaths: soundPaths,
             getSound: getSound,
             setSound: (final value) =>

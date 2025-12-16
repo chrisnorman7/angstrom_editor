@@ -100,7 +100,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
               PerformableAction(
                 name: 'Add ambiance',
                 invoke: () => context.pushWidgetBuilder(
-                  (_) => SelectSound(
+                  (_) => SelectSoundScreen(
                     soundPaths: editorContext.ambianceSoundPaths,
                     getSound: editorContext.getSound,
                     setSound: (final value) {
@@ -119,7 +119,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
               PerformableAction(
                 name: 'Edit ambiance',
                 invoke: () => context.pushWidgetBuilder(
-                  (_) => SelectSound(
+                  (_) => SelectSoundScreen(
                     soundPaths: editorContext.ambianceSoundPaths,
                     getSound: editorContext.getSound,
                     setSound: (final value) {

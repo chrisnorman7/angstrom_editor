@@ -204,7 +204,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                     invoke: () {
                       _lastIndex = index;
                       context.pushWidgetBuilder(
-                        (_) => SelectSound(
+                        (_) => SelectSoundScreen(
                           soundPaths: widget.musicSoundPaths,
                           getSound: getSound,
                           setSound: (final value) {
