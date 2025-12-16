@@ -251,7 +251,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                     editorContext.save();
                     setState(() {});
                   },
-                ).actions,
+                ).getActions(context, editorContext),
                 PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,

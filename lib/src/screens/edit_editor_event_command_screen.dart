@@ -45,44 +45,46 @@ class EditEditorEventCommandScreenState
 
   /// Build a widget.
   @override
-  Widget build(final BuildContext context) => SimpleScaffold(
-    title: 'Command Editor',
-    body: ListView(
-      children: [
-        ListTile(
-          autofocus: true,
-          title: const Text('Comment'),
-          subtitle: Text(command.comment),
-          onTap: () => context.pushWidgetBuilder(
-            (_) => EditCommentScreen(
-              onChange: (final value) {
-                command.comment = value ?? command.comment;
-                save();
-              },
-              comment: command.comment,
+  Widget build(final BuildContext context) => Cancel(
+    child: SimpleScaffold(
+      title: 'Command Editor',
+      body: ListView(
+        children: [
+          ListTile(
+            autofocus: true,
+            title: const Text('Comment'),
+            subtitle: Text(command.comment),
+            onTap: () => context.pushWidgetBuilder(
+              (_) => EditCommentScreen(
+                onChange: (final value) {
+                  command.comment = value ?? command.comment;
+                  save();
+                },
+                comment: command.comment,
+              ),
             ),
           ),
-        ),
-        TextListTile(
-          value: command.spokenText ?? '',
-          onChanged: (final value) {
-            command.spokenText = value.trim().isEmpty ? null : value;
-            save();
-          },
-          header: 'Speak text',
-          labelText: 'Text',
-          title: 'Spoken Text',
-        ),
-        SoundReferenceListTile(
-          editorContext: widget.editorContext,
-          onChange: (final value) {
-            command.interfaceSound = value;
-            save();
-          },
-          soundReference: command.interfaceSound,
-          title: 'Interface sound',
-        ),
-      ],
+          TextListTile(
+            value: command.spokenText ?? '',
+            onChanged: (final value) {
+              command.spokenText = value.trim().isEmpty ? null : value;
+              save();
+            },
+            header: 'Speak text',
+            labelText: 'Text',
+            title: 'Spoken Text',
+          ),
+          SoundReferenceListTile(
+            editorContext: widget.editorContext,
+            onChange: (final value) {
+              command.interfaceSound = value;
+              save();
+            },
+            soundReference: command.interfaceSound,
+            title: 'Interface sound',
+          ),
+        ],
+      ),
     ),
   );
 

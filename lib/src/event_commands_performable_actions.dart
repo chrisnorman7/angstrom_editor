@@ -1,9 +1,10 @@
 import 'package:angstrom_editor/angstrom_editor.dart';
+import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-/// A class which builds a list of performable [actions] from a [map] of
-/// [events] and [EditorEventCommand]s.
+/// A class which builds a list of performable [PerformableActions] from a [map]
+/// of [events] and [EditorEventCommand]s.
 class EventCommandsPerformableActions {
   /// Create an instance.
   const EventCommandsPerformableActions({
@@ -22,7 +23,10 @@ class EventCommandsPerformableActions {
   final VoidCallback save;
 
   /// The actions for this map.
-  Iterable<PerformableAction> get actions sync* {
+  Iterable<PerformableAction> getActions(
+    final BuildContext context,
+    final EditorContext editorContext,
+  ) sync* {
     for (final event in events) {
       final command = map[event];
       if (command == null) {
@@ -38,6 +42,13 @@ class EventCommandsPerformableActions {
       } else {
         yield PerformableAction(
           name: 'Edit ${event.name} (${command.comment})',
+          invoke: () => context.pushWidgetBuilder(
+            (_) => EditEditorEventCommandScreen(
+              editorContext: editorContext,
+              command: command,
+              onChange: save,
+            ),
+          ),
         );
         yield PerformableAction(
           name: 'Delete ${event.name}',

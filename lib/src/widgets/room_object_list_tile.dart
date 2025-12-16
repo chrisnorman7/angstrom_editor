@@ -147,7 +147,7 @@ class RoomObjectListTile extends StatelessWidget {
             editorContext.save();
             onChange();
           },
-        ).actions,
+        ).getActions(context, editorContext),
         PerformableAction(
           name: 'Copy door code',
           invoke: () {
