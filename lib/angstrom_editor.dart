@@ -41,5 +41,5 @@ export 'src/widgets/room_editor_page.dart';
 export 'src/widgets/room_object_list_tile.dart';
 export 'src/widgets/room_objects_page.dart';
 export 'src/widgets/room_surfaces_page.dart';
-export 'src/widgets/sound_reference_list_tile.dart';
+export 'src/widgets/sound_path_list_tile.dart';
 export 'src/widgets/sound_reference_text.dart';

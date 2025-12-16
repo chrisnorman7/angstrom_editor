@@ -1,5 +1,5 @@
 import 'package:angstrom_editor/angstrom_editor.dart';
-import 'package:angstrom_editor/src/widgets/sound_list_tile.dart';
+import 'package:angstrom_editor/src/widgets/sound_reference_list_tile.dart';
 import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/widgets.dart';
@@ -73,7 +73,7 @@ class EditEditorEventCommandScreenState
           labelText: 'Text',
           title: 'Spoken Text',
         ),
-        SoundListTile(
+        SoundReferenceListTile(
           editorContext: widget.editorContext,
           onChange: (final value) {
             command.interfaceSound = value;

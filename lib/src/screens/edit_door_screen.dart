@@ -109,7 +109,7 @@ class EditDoorScreenState extends State<EditDoorScreen> {
               },
               title: const Text('Stop player'),
             ),
-            SoundReferenceListTile(
+            SoundPathListTile(
               soundPaths: editorContext.doorSounds,
               getSound: editorContext.getSound,
               title: 'Use sound',
