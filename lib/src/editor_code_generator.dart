@@ -427,7 +427,10 @@ class EditorCodeGenerator {
     final dartFile = File(engineCodePath);
     try {
       final roomsWithEvents = roomCodeClasses
-          .where((final roomCode) => roomCode.room.events.hasEvents)
+          .where(
+            (final roomCode) =>
+                roomCode.room.editorRoom.eventCommands.isNotEmpty,
+          )
           .toList();
       final engineClass = Class((final c) {
         c
@@ -436,8 +439,9 @@ class EditorCodeGenerator {
             'The custom engine for your game.'.asDocComment,
             '///',
             // ignore: lines_longer_than_80_chars
-            'This class will ensure that your custom callbacks can be loaded in a completely type safe manner.'
+            'This class will ensure that your custom callbacks can be loaded in a'
                 .asDocComment,
+            'completely type safe manner.'.asDocComment,
           ])
           ..extend = assetLoadingEngine
           ..constructors.add(
@@ -449,6 +453,7 @@ class EditorCodeGenerator {
                     (final name) => Parameter((final p) {
                       p
                         ..name = name
+                        ..named = true
                         ..toSuper = true
                         ..required = true;
                     }),
@@ -512,7 +517,7 @@ class EditorCodeGenerator {
                       roomClass.name.length - base.length,
                     );
                     buffer
-                      ..writeln('{editorRoom.name} events.'.asInlineComment)
+                      ..writeln('${editorRoom.name} events.'.asInlineComment)
                       ..writeln('${literalString(roomId)}:');
                     if (editorRoom.eventCommands.isEmpty) {
                       buffer.write('const ');
