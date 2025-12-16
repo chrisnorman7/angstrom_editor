@@ -83,6 +83,14 @@ class EditEditorEventCommandScreenState
             soundReference: command.interfaceSound,
             title: 'Interface sound',
           ),
+          CheckboxListTile(
+            value: command.hasHandler,
+            onChanged: (final value) {
+              command.hasHandler = !command.hasHandler;
+              save();
+            },
+            title: const Text('Extra code needed'),
+          ),
         ],
       ),
     ),
