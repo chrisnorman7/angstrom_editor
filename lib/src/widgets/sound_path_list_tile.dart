@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:angstrom/angstrom.dart';
 import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:backstreets_widgets/extensions.dart';
@@ -62,8 +60,6 @@ class SoundPathListTile extends StatelessWidget {
         ),
       );
     }
-    const minVolume = 0.0;
-    const maxVolume = 10.0;
     return PlaySoundSemantics(
       sound: getSound(
         soundReference: sound,
@@ -73,36 +69,10 @@ class SoundPathListTile extends StatelessWidget {
       ),
       child: PerformableActionsListTile(
         actions: [
-          PerformableAction(
-            name: 'Edit volume',
-            invoke: () => context.pushWidgetBuilder(
-              (_) => EditVolumeScreen(
-                volume: sound.volume,
-                onChanged: (final value) =>
-                    onChange(SoundReference(path: sound.path, volume: value)),
-              ),
-            ),
-          ),
-          PerformableAction(
-            name: 'Increase volume',
-            activator: moveUpShortcut,
-            invoke: () => onChange(
-              SoundReference(
-                path: sound.path,
-                volume: min(maxVolume, sound.volume + 0.1),
-              ),
-            ),
-          ),
-          PerformableAction(
-            name: 'Decrease volume',
-            activator: moveDownShortcut,
-            invoke: () => onChange(
-              SoundReference(
-                path: sound.path,
-                volume: max(minVolume, sound.volume - 0.1),
-              ),
-            ),
-          ),
+          ...SoundReferenceVolumeActions(
+            soundReference: sound,
+            onChange: onChange,
+          ).getActions(context),
           PerformableAction(
             name: 'Delete',
             activator: deleteShortcut,

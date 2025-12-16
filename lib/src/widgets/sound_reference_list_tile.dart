@@ -61,7 +61,7 @@ class SoundReferenceListTile extends StatelessWidget {
           ...SoundReferenceVolumeActions(
             soundReference: reference,
             onChange: onChange,
-          ).actions,
+          ).getActions(context),
           PerformableAction(
             name: 'Delete',
             activator: deleteShortcut,

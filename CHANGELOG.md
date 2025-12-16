@@ -2,11 +2,10 @@
 
 ## 0.2.0
 
-- Feat: Set comments for the events which are defined in the editor.
 - Feat: Specify events on rooms.
 - Feat: Optionally play a sound when a build fails.
 - Refactor: Updated dependencies.
-- Fixed a bug which meant that comments weren't always passed to the comment editor.
+- Feat: Add a basic command editor.
 
 ## 0.1.0
 

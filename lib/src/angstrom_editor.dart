@@ -224,35 +224,15 @@ class AngstromEditorState extends State<AngstromEditor> {
                     },
                   ),
                 ] else ...[
-                  if (musicReference.volume > 0.0)
-                    PerformableAction(
-                      name: 'Decrease music newVolume',
-                      activator: moveDownShortcut,
-                      invoke: () {
-                        _lastIndex = index;
-                        editorRoom.music = musicReference.path.asSoundReference(
-                          volume: max(
-                            0.0,
-                            musicReference.volume - widget.volumeChangeAmount,
-                          ),
-                        );
-                        editorContext.save();
-                        setState(() {});
-                      },
-                    ),
-                  PerformableAction(
-                    name: 'Increase music volume',
-                    activator: moveUpShortcut,
-                    invoke: () {
+                  ...SoundReferenceVolumeActions(
+                    soundReference: musicReference,
+                    onChange: (final value) {
                       _lastIndex = index;
-                      editorRoom.music = musicReference.path.asSoundReference(
-                        volume:
-                            musicReference.volume + widget.volumeChangeAmount,
-                      );
+                      editorRoom.music = value;
                       editorContext.save();
                       setState(() {});
                     },
-                  ),
+                  ).getActions(context),
                   PerformableAction(
                     name: 'Remove music',
                     activator: editMusicShortcut,
@@ -272,14 +252,6 @@ class AngstromEditorState extends State<AngstromEditor> {
                     setState(() {});
                   },
                 ).actions,
-                PerformableAction(
-                  name: 'Copy ID',
-                  activator: copyExtraShortcut,
-                  invoke: () {
-                    _lastIndex = index;
-                    room.id.copyToClipboard();
-                  },
-                ),
                 PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,

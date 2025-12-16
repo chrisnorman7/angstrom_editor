@@ -94,20 +94,15 @@ class RoomObjectListTile extends StatelessWidget {
               ),
             ),
           ),
-          PerformableAction(
-            name: 'Edit ambiance volume (${ambiance.volume})',
-            invoke: () => context.pushWidgetBuilder(
-              (_) => EditVolumeScreen(
-                volume: ambiance.volume,
-                onChanged: (final value) {
-                  object.ambiance = ambiance.path.asSoundReference(
-                    volume: value,
-                  );
-                  onChange();
-                },
-              ),
-            ),
-          ),
+          ...SoundReferenceVolumeActions(
+            soundReference: ambiance,
+            onChange: (final value) {
+              object.ambiance = value;
+              onChange();
+            },
+            volumeDownShortcut: null,
+            volumeUpShortcut: null,
+          ).getActions(context),
         ],
         PerformableAction(
           name: 'Move north',
