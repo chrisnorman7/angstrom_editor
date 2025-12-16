@@ -14,8 +14,8 @@ class SoundReferenceVolumeActions {
   const SoundReferenceVolumeActions({
     required this.soundReference,
     required this.onChange,
-    this.volumeAdjust = 0.0,
-    this.minVolume = 0.1,
+    this.volumeAdjust = 0.1,
+    this.minVolume = 0.0,
     this.maxVolume = 5.0,
     this.volumeUpShortcut = moveUpShortcut,
     this.volumeDownShortcut = moveDownShortcut,
