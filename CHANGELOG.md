@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Don't pass editor contexts around.
+
 ## 0.3.1
 
 - Updated dependencies.
