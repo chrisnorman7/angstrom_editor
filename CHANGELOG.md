@@ -3,6 +3,7 @@
 ## 0.4.0
 
 - Don't pass editor contexts around.
+- Upgrade dependencies.
 
 ## 0.3.1
 

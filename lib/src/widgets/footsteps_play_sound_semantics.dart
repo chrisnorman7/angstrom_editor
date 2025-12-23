@@ -37,16 +37,18 @@ class _FootstepsPlaySoundSemanticsState
   /// Whether we should be playing.
   late bool _shouldPlay;
 
-  /// The sounds to play.
-  late final List<Sound> sounds;
-
   /// Initialise state.
   @override
   void initState() {
-    final editorContext = context.editorContext;
     super.initState();
     _shouldPlay = false;
-    sounds = widget.footstepSounds
+  }
+
+  /// Build the widget.
+  @override
+  Widget build(final BuildContext context) {
+    final editorContext = context.editorContext;
+    final sounds = widget.footstepSounds
         .map(
           (final path) => editorContext.getSound(
             soundReference: path.asSoundReference(volume: widget.volume),
@@ -54,34 +56,31 @@ class _FootstepsPlaySoundSemanticsState
           ),
         )
         .toList();
-  }
-
-  /// Build the widget.
-  @override
-  Widget build(final BuildContext context) => ProtectSounds(
-    sounds: sounds,
-    child: FocusableActionDetector(
-      enabled: false,
-      onFocusChange: (final value) {
-        _shouldPlay = value;
-      },
-      child: MouseRegion(
-        child: Ticking(
-          duration: widget.interval,
-          onTick: () {
-            if (_shouldPlay) {
-              context.playRandomSound(sounds);
-            }
+    return ProtectSounds(
+      sounds: sounds,
+      child: FocusableActionDetector(
+        enabled: false,
+        onFocusChange: (final value) {
+          _shouldPlay = value;
+        },
+        child: MouseRegion(
+          child: Ticking(
+            duration: widget.interval,
+            onTick: () {
+              if (_shouldPlay) {
+                context.playRandomSound(sounds);
+              }
+            },
+            child: widget.child,
+          ),
+          onEnter: (final _) {
+            _shouldPlay = true;
           },
-          child: widget.child,
+          onExit: (final _) {
+            _shouldPlay = false;
+          },
         ),
-        onEnter: (final _) {
-          _shouldPlay = true;
-        },
-        onExit: (final _) {
-          _shouldPlay = false;
-        },
       ),
-    ),
-  );
+    );
+  }
 }
