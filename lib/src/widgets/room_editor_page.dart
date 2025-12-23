@@ -11,10 +11,7 @@ import 'package:flutter_audio_games/flutter_audio_games.dart';
 /// A page for editing a room.
 class RoomEditorPage extends StatefulWidget {
   /// Create an instance.
-  const RoomEditorPage({required this.editorContext, super.key});
-
-  /// The editor context to use.
-  final EditorContext editorContext;
+  const RoomEditorPage({super.key});
 
   /// Create state.
   @override
@@ -27,7 +24,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
   late EditorContext _editorContext;
 
   /// The engine to use.
-  late final EditorEngine engine;
+  late AngstromEngine _engine;
 
   /// The room to work with.
   LoadedRoom get room => _editorContext.room;
@@ -51,24 +48,14 @@ class RoomEditorPageState extends State<RoomEditorPage> {
   @override
   void initState() {
     super.initState();
-    _editorContext = widget.editorContext;
-    final room = _editorContext.room;
-    final editorRoom = room.editorRoom;
-    engine = EditorEngine(
-      playerCharacter: PlayerCharacter(
-        id: 'player_id',
-        name: 'Player',
-        locationId: room.id,
-        x: editorRoom.x,
-        y: editorRoom.y,
-        statsMap: {},
-      ),
-    );
   }
 
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
+    final scope = EditorContextScope.of(context);
+    _editorContext = scope.editorContext;
+    _engine = scope.engine;
     final s = surface;
     final box = _selectionBox;
     final objects = editorRoom.objects
@@ -144,7 +131,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                     ObjectCoordinates(coordinates.x, coordinates.y),
                   );
                   _editorContext.save();
-                  engine.movePlayer(coordinates);
+                  _engine.movePlayer(coordinates);
                   setState(() {});
                 },
                 checked: menuSurface.id == surface?.id,
@@ -185,7 +172,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                 movingObject.coordinates = coordinates;
                 _editorContext.save();
                 // Make the engine reload the room.
-                engine.teleportPlayer(room.id, coordinates);
+                _engine.teleportPlayer(room.id, coordinates);
                 setState(() {
                   _movingObject = null;
                 });
@@ -203,7 +190,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                     (final p) => p.coordinates == coordinates,
                   );
                   _editorContext.save();
-                  engine.movePlayer(coordinates);
+                  _engine.movePlayer(coordinates);
                   setState(() {});
                 }
                 return;
@@ -221,7 +208,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                     )?.points.removeWhere((final p) => p.coordinates == point);
                   }
                   _editorContext.save();
-                  engine.movePlayer(coordinates);
+                  _engine.movePlayer(coordinates);
                   setState(() {});
                 },
               );
@@ -340,7 +327,6 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                       objects: objects,
                       onChange: (final value) =>
                           setState(() => _movingObject = value),
-                      getSound: widget.editorContext.getSound,
                     ),
                   );
                 }
@@ -365,11 +351,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
             ),
           ),
         ];
-        return EditorContextWrapper(
-          engine: engine,
-          editorContext: _editorContext,
-          child: GameShortcuts(shortcuts: shortcuts, child: text),
-        );
+        return GameShortcuts(shortcuts: shortcuts, child: text);
       },
     );
   }
@@ -400,7 +382,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
 
   /// Perform a move to the [newCoordinates].
   void _movePlayer(final Point<int> newCoordinates) {
-    engine.movePlayer(newCoordinates);
+    _engine.movePlayer(newCoordinates);
     editorRoom.coordinates = newCoordinates;
     _editorContext.save();
     final s = surface;

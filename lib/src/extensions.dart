@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:angstrom/angstrom.dart';
 import 'package:angstrom_editor/angstrom_editor.dart';
+import 'package:flutter/material.dart';
 import 'package:textwrap/textwrap.dart';
 
 /// Useful extensions on [Directory] instances.
@@ -31,4 +33,22 @@ extension StringX on String {
   /// Return `this` [String] as a doc comment.
   String get asDocComment =>
       fill(this, width: 80, initialIndent: '/// ', subsequentIndent: '/// ');
+}
+
+/// Useful methods for [BuildContext]s.
+extension BuildContextX on BuildContext {
+  /// Get the nearest [EditorContext].
+  EditorContext get editorContext => EditorContextScope.of(this).editorContext;
+
+  /// Get the current angstrom engine.
+  EditorEngine get engine => EditorContextScope.of(this).engine;
+
+  /// The get sound function to use.
+  GetSound get getSound => editorContext.getSound;
+
+  /// The nearest loaded room.
+  LoadedRoom get loadedRoom => editorContext.room;
+
+  /// The nearest editor room.
+  EditorRoom get editorRoom => loadedRoom.editorRoom;
 }

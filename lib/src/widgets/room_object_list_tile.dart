@@ -11,15 +11,11 @@ import 'package:flutter/material.dart';
 class RoomObjectListTile extends StatelessWidget {
   /// Create an instance.
   const RoomObjectListTile({
-    required this.editorContext,
     required this.object,
     required this.onChange,
     this.autofocus = false,
     super.key,
   });
-
-  /// The editor context to use.
-  final EditorContext editorContext;
 
   /// The room object to edit.
   final EditorRoomObject object;
@@ -35,6 +31,7 @@ class RoomObjectListTile extends StatelessWidget {
   Widget build(final BuildContext context) {
     final ambiance = object.ambiance;
     final buffer = StringBuffer('${object.x}, ${object.y}');
+    final editorContext = context.editorContext;
     for (final surface in editorContext.room.editorRoom.surfaces) {
       if (surface.points
           .where((final p) => p.coordinates == object.coordinates)

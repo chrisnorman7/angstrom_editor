@@ -34,7 +34,7 @@ export 'src/screens/select_object_screen.dart';
 export 'src/screens/select_sound_screen.dart';
 export 'src/shortcuts.dart';
 export 'src/sound_reference_volume_actions.dart';
-export 'src/widgets/editor_context_wrapper.dart';
+export 'src/widgets/editor_context_scope.dart';
 export 'src/widgets/editor_room_surface_list_tile.dart';
 export 'src/widgets/footsteps_play_sound_semantics.dart';
 export 'src/widgets/room_editor_page.dart';

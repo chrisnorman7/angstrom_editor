@@ -5,18 +5,15 @@ import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 
-/// A screen for selecting from all the sounds that [editorContext] knows about.
+/// A screen for selecting from all the sounds that the nearest [EditorContext]
+/// knows about.
 class CreateSoundReferenceScreen extends StatefulWidget {
   /// Create an instance.
   const CreateSoundReferenceScreen({
-    required this.editorContext,
     required this.onChange,
     this.soundReference,
     super.key,
   });
-
-  /// The editor context to use.
-  final EditorContext editorContext;
 
   /// The function to call when [soundReference] changes.
   final ValueChanged<SoundReference> onChange;
@@ -39,7 +36,7 @@ class CreateSoundReferenceScreenState
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final editorContext = widget.editorContext;
+    final editorContext = EditorContextScope.of(context).editorContext;
     final soundPaths = _soundPaths;
     if (soundPaths == null) {
       final soundReference = widget.soundReference;

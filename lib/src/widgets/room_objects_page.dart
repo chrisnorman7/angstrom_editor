@@ -7,14 +7,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 /// The room objects page.
 class RoomObjectsPage extends StatelessWidget {
   /// Create an instance.
-  const RoomObjectsPage({
-    required this.editorContext,
-    required this.onChange,
-    super.key,
-  });
-
-  /// The editor context to work with.
-  final EditorContext editorContext;
+  const RoomObjectsPage({required this.onChange, super.key});
 
   /// The function to call when a surface has been edited.
   final VoidCallback onChange;
@@ -22,6 +15,7 @@ class RoomObjectsPage extends StatelessWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
+    final editorContext = context.editorContext;
     final room = editorContext.room.editorRoom;
     final objects = room.objects;
     if (objects.isEmpty) {
@@ -42,7 +36,6 @@ class RoomObjectsPage extends StatelessWidget {
         return MaybePlaySoundSemantics(
           sound: sound,
           child: RoomObjectListTile(
-            editorContext: editorContext,
             object: object,
             onChange: onChange,
             autofocus: index == 0,

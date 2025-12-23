@@ -1,4 +1,5 @@
 import 'package:angstrom/angstrom.dart';
+import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
@@ -9,7 +10,6 @@ class FootstepsPlaySoundSemantics extends StatefulWidget {
   const FootstepsPlaySoundSemantics({
     required this.footstepSounds,
     required this.interval,
-    required this.getSound,
     required this.child,
     this.volume = 0.7,
     super.key,
@@ -20,9 +20,6 @@ class FootstepsPlaySoundSemantics extends StatefulWidget {
 
   /// The interval at which [footstepSounds] should be played.
   final Duration interval;
-
-  /// The function to convert one of the [footstepSounds] to a [Sound].
-  final GetSound getSound;
 
   /// The widget below this widget in the tree.
   final Widget child;
@@ -46,11 +43,12 @@ class _FootstepsPlaySoundSemanticsState
   /// Initialise state.
   @override
   void initState() {
+    final editorContext = context.editorContext;
     super.initState();
     _shouldPlay = false;
     sounds = widget.footstepSounds
         .map(
-          (final path) => widget.getSound(
+          (final path) => editorContext.getSound(
             soundReference: path.asSoundReference(volume: widget.volume),
             destroy: true,
           ),

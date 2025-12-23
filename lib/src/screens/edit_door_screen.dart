@@ -9,17 +9,7 @@ import 'package:flutter/material.dart';
 /// A screen for editing a [door].
 class EditDoorScreen extends StatefulWidget {
   /// Create an instance.
-  const EditDoorScreen({
-    required this.editorContext,
-    required this.door,
-    super.key,
-  });
-
-  /// The edit context to use.
-  ///
-  /// This [EditorContext] must represent the location of the [EditorRoomObject]
-  /// which holds the [door], rather than the target of the [door].
-  final EditorContext editorContext;
+  const EditDoorScreen({required this.door, super.key});
 
   /// The door to change.
   final EditorDoor door;
@@ -44,24 +34,25 @@ class EditDoorScreenState extends State<EditDoorScreen> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final roomsDirectory = widget.editorContext.file.parent;
+    final currentEditorContext = context.editorContext;
+    final roomsDirectory = currentEditorContext.file.parent;
     final rooms = roomsDirectory.rooms.toList();
     final room = rooms.firstWhere((final room) => room.id == door.targetRoomId);
     final editorContext = EditorContext(
       file: File(room.path),
       room: room,
-      getSound: widget.editorContext.getSound,
-      newId: widget.editorContext.newId,
-      footsteps: widget.editorContext.footsteps,
-      musicSoundPaths: widget.editorContext.musicSoundPaths,
-      ambianceSoundPaths: widget.editorContext.ambianceSoundPaths,
-      doorSounds: widget.editorContext.doorSounds,
-      wallAttenuation: widget.editorContext.wallAttenuation,
-      wallFactor: widget.editorContext.wallFactor,
-      onExamineObject: widget.editorContext.onExamineObject,
-      getExamineObjectDistance: widget.editorContext.getExamineObjectDistance,
-      getExamineObjectOrdering: widget.editorContext.getExamineObjectOrdering,
-      onNoRoomObjects: widget.editorContext.onNoRoomObjects,
+      getSound: currentEditorContext.getSound,
+      newId: currentEditorContext.newId,
+      footsteps: currentEditorContext.footsteps,
+      musicSoundPaths: currentEditorContext.musicSoundPaths,
+      ambianceSoundPaths: currentEditorContext.ambianceSoundPaths,
+      doorSounds: currentEditorContext.doorSounds,
+      wallAttenuation: currentEditorContext.wallAttenuation,
+      wallFactor: currentEditorContext.wallFactor,
+      onExamineObject: currentEditorContext.onExamineObject,
+      getExamineObjectDistance: currentEditorContext.getExamineObjectDistance,
+      getExamineObjectOrdering: currentEditorContext.getExamineObjectOrdering,
+      onNoRoomObjects: currentEditorContext.onNoRoomObjects,
     );
     final objects = [for (final room in rooms) ...room.editorRoom.objects];
     final object = objects.firstWhere((final o) => o.id == door.targetObjectId);
@@ -127,7 +118,7 @@ class EditDoorScreenState extends State<EditDoorScreen> {
 
   /// Save the [door].
   void save() {
-    widget.editorContext.save();
+    context.editorContext.save();
     setState(() {});
   }
 }

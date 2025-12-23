@@ -9,14 +9,10 @@ import 'package:flutter/material.dart';
 class EditEditorEventCommandScreen extends StatefulWidget {
   /// Create an instance.
   const EditEditorEventCommandScreen({
-    required this.editorContext,
     required this.command,
     required this.onChange,
     super.key,
   });
-
-  /// The editor context to use.
-  final EditorContext editorContext;
 
   /// The command to edit.
   final EditorEventCommand command;
@@ -75,7 +71,6 @@ class EditEditorEventCommandScreenState
             title: 'Spoken Text',
           ),
           SoundReferenceListTile(
-            editorContext: widget.editorContext,
             onChange: (final value) {
               command.interfaceSound = value;
               save();
@@ -98,7 +93,7 @@ class EditEditorEventCommandScreenState
 
   /// Save the [command].
   void save() {
-    widget.editorContext.save();
+    EditorContextScope.of(context).editorContext.save();
     setState(() {});
     widget.onChange();
   }

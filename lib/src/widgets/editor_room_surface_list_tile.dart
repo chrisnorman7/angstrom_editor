@@ -13,15 +13,11 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 class EditorRoomSurfaceListTile extends StatelessWidget {
   /// Create an instance.
   const EditorRoomSurfaceListTile({
-    required this.editorContext,
     required this.surfaceId,
     required this.onChange,
     this.autofocus = false,
     super.key,
   });
-
-  /// The editor context to use.
-  final EditorContext editorContext;
 
   /// The ID of the surface to show.
   final String surfaceId;
@@ -35,6 +31,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
+    final editorContext = context.editorContext;
     final room = editorContext.room;
     final surface = room.editorRoom.surfaces.firstWhere(
       (final s) => s.id == surfaceId,
@@ -43,13 +40,12 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
     return FootstepsPlaySoundSemantics(
       key: ValueKey(surface.contactSounds.join('|')),
       footstepSounds: surface.contactSounds,
-      getSound: editorContext.getSound,
       interval: surface.moveInterval,
       volume: surface.contactSoundsVolume,
       child: MaybePlaySoundSemantics(
         sound: ambiance == null
             ? null
-            : editorContext.getSound(
+            : context.getSound(
                 soundReference: ambiance,
                 destroy: false,
                 loadMode: LoadMode.disk,

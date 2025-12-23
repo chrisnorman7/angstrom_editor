@@ -43,11 +43,8 @@ class EventCommandsPerformableActions {
         yield PerformableAction(
           name: 'Edit ${event.name} (${command.comment})',
           invoke: () => context.pushWidgetBuilder(
-            (_) => EditEditorEventCommandScreen(
-              editorContext: editorContext,
-              command: command,
-              onChange: save,
-            ),
+            (_) =>
+                EditEditorEventCommandScreen(command: command, onChange: save),
           ),
         );
         yield PerformableAction(

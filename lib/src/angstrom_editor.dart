@@ -292,8 +292,22 @@ class AngstromEditorState extends State<AngstromEditor> {
                   : SoundReferenceText(soundReference: musicReference),
               onTap: () {
                 _lastIndex = index;
+                final engine = EditorEngine(
+                  playerCharacter: PlayerCharacter(
+                    id: newId(),
+                    name: 'Editor Player',
+                    locationId: room.id,
+                    x: editorRoom.x,
+                    y: editorRoom.y,
+                    statsMap: {},
+                  ),
+                );
                 context.pushWidgetBuilder(
-                  (_) => RoomEditor(editorContext: editorContext),
+                  (_) => EditorContextScope(
+                    engine: engine,
+                    editorContext: editorContext,
+                    child: const RoomEditor(),
+                  ),
                 );
               },
             ),
