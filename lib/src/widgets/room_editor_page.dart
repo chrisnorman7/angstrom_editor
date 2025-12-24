@@ -342,17 +342,20 @@ class RoomEditorPageState extends State<RoomEditorPage> {
             onStart: (final innerContext) =>
                 'Point(${coordinates.x}, ${coordinates.y})'.copyToClipboard(),
           ),
-        ];
-        shortcuts.add(
           GameShortcut(
             title: 'Show keyboard shortcuts',
             shortcut: GameShortcutsShortcut.slash,
             shiftKey: true,
-            onStart: (final innerContext) => innerContext.pushWidgetBuilder(
-              (_) => GameShortcutsHelpScreen(shortcuts: shortcuts),
-            ),
+            onStart: (final innerContext) {
+              final inheritedShortcuts = GameShortcuts.of(
+                innerContext,
+              ).shortcuts;
+              innerContext.pushWidgetBuilder(
+                (_) => GameShortcutsHelpScreen(shortcuts: inheritedShortcuts),
+              );
+            },
           ),
-        );
+        ];
         return GameShortcuts(shortcuts: shortcuts, child: text);
       },
     );
