@@ -3,6 +3,7 @@
 ## 0.4.1
 
 - Create the rooms directory if it does not exist.
+- Required `editorContext` in a few places.
 
 ## 0.4.0
 
