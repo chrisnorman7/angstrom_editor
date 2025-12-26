@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Create the rooms directory if it does not exist.
+
 ## 0.4.0
 
 - Don't pass editor contexts around.

@@ -138,6 +138,9 @@ class AngstromEditorState extends State<AngstromEditor> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
+    if (!widget.directory.existsSync()) {
+      widget.directory.createSync(recursive: true);
+    }
     final rooms = widget.directory.rooms.toList();
     final Widget child;
     if (rooms.isEmpty) {
