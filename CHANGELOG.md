@@ -4,6 +4,7 @@
 
 - Create the rooms directory if it does not exist.
 - Required `editorContext` in a few places.
+- Add all rooms to the `CustomEngine` class.
 
 ## 0.4.0
 

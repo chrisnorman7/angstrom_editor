@@ -437,12 +437,6 @@ class EditorCodeGenerator {
     );
     final dartFile = File(engineCodePath);
     try {
-      final roomsWithEvents = roomCodeClasses
-          .where(
-            (final roomCode) =>
-                roomCode.room.editorRoom.eventCommands.isNotEmpty,
-          )
-          .toList();
       final engineClass = Class((final c) {
         c
           ..name = engineClassName
@@ -469,7 +463,7 @@ class EditorCodeGenerator {
                         ..required = true;
                     }),
                   ),
-                  ...roomsWithEvents.map((final roomCode) {
+                  ...roomCodeClasses.map((final roomCode) {
                     final room = roomCode.room.editorRoom;
                     return Parameter((final p) {
                       p
@@ -483,7 +477,7 @@ class EditorCodeGenerator {
             }),
           )
           ..fields.addAll(
-            roomsWithEvents.map((final roomCode) {
+            roomCodeClasses.map((final roomCode) {
               final room = roomCode.room.editorRoom;
               final roomClass = roomCode.roomClass;
               return Field((final f) {
@@ -517,8 +511,8 @@ class EditorCodeGenerator {
                 ..type = MethodType.getter
                 ..body = Code.scope((final allocate) {
                   final buffer = StringBuffer()..writeln('{');
-                  for (var i = 0; i < roomsWithEvents.length; i++) {
-                    final roomCode = roomsWithEvents[i];
+                  for (var i = 0; i < roomCodeClasses.length; i++) {
+                    final roomCode = roomCodeClasses[i];
                     final room = roomCode.room;
                     final editorRoom = room.editorRoom;
                     final roomId = room.id.replaceAll(r'\', '/');
