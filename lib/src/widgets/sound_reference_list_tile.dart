@@ -11,12 +11,16 @@ import 'package:flutter_audio_games/flutter_audio_games.dart';
 class SoundReferenceListTile extends StatelessWidget {
   /// Create an instance.
   const SoundReferenceListTile({
+    required this.editorContext,
     required this.onChange,
     this.soundReference,
     this.title = 'Sound',
     this.autofocus = false,
     super.key,
   });
+
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// The function to call when the current [soundReference] changes.
   final ValueChanged<SoundReference?> onChange;
@@ -39,13 +43,17 @@ class SoundReferenceListTile extends StatelessWidget {
         autofocus: autofocus,
         title: Text(title),
         onTap: () => context.pushWidgetBuilder(
-          (_) => CreateSoundReferenceScreen(onChange: onChange),
+          (_) => CreateSoundReferenceScreen(
+            editorContext: editorContext,
+            onChange: onChange,
+          ),
         ),
       );
     }
-    final sound = EditorContextScope.of(
-      context,
-    ).editorContext.getSound(soundReference: reference, destroy: false);
+    final sound = editorContext.getSound(
+      soundReference: reference,
+      destroy: false,
+    );
     return MaybePlaySoundSemantics(
       sound: sound,
       child: PerformableActionsListTile(
@@ -65,6 +73,7 @@ class SoundReferenceListTile extends StatelessWidget {
         subtitle: SoundReferenceText(soundReference: reference),
         onTap: () => context.pushWidgetBuilder(
           (_) => CreateSoundReferenceScreen(
+            editorContext: editorContext,
             onChange: onChange,
             soundReference: reference,
           ),

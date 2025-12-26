@@ -20,6 +20,9 @@ const angstromPackage = 'package:angstrom/angstrom.dart';
 /// Refer to the engine.
 final angstromEngineRef = refer('AngstromEngine', angstromPackage);
 
+/// The type of an allocate function from `code_builder`.
+typedef Allocate = String Function(Reference);
+
 /// The engine parameter.
 final engineParameter = Parameter((final p) {
   p
@@ -65,20 +68,22 @@ class EditorCodeGenerator {
   static const commandSuffix = 'Command';
 
   /// Return a sound [reference] as code.
-  Code _soundReferenceCode(final SoundReference reference) =>
-      Code.scope((final allocate) {
-        final soundReference = allocate(
-          refer('SoundReference', 'package:angstrom/angstrom.dart'),
-        );
-        final buffer = StringBuffer()
-          ..writeln('const $soundReference(')
-          ..writeln('path: ${literalString(reference.path)},');
-        if (reference.volume != 0.7) {
-          buffer.writeln('volume: ${reference.volume},');
-        }
-        buffer.writeln(')');
-        return buffer.toString();
-      });
+  String _soundReferenceCode(
+    final SoundReference reference,
+    final Allocate allocate,
+  ) {
+    final soundReference = allocate(
+      refer('SoundReference', 'package:angstrom/angstrom.dart'),
+    );
+    final buffer = StringBuffer()
+      ..writeln('const $soundReference(')
+      ..writeln('path: ${literalString(reference.path)},');
+    if (reference.volume != 0.7) {
+      buffer.writeln('volume: ${reference.volume},');
+    }
+    buffer.writeln(')');
+    return buffer.toString();
+  }
 
   /// Returns the code for the given [command].
   Code _editorEventCommandCode({
@@ -94,7 +99,7 @@ class EditorCodeGenerator {
     if (interfaceSoundReference != null) {
       buffer
         ..writeln('engine.playInterfaceSound(')
-        ..write(_soundReferenceCode(interfaceSoundReference))
+        ..write(_soundReferenceCode(interfaceSoundReference, allocate))
         ..writeln(',')
         ..writeln(');');
     }
@@ -193,7 +198,10 @@ class EditorCodeGenerator {
                         'The sound which plays while on this surface.'
                             .asDocComment,
                       )
-                      ..body = _soundReferenceCode(ambiance)
+                      ..body = Code.scope(
+                        (final allocate) =>
+                            _soundReferenceCode(ambiance, allocate),
+                      )
                       ..lambda = true
                       ..returns = soundReferenceRefer
                       ..type = MethodType.getter;
@@ -285,7 +293,10 @@ class EditorCodeGenerator {
                       ..name = 'ambiance'
                       ..annotations.add(nonVirtualAnnotation)
                       ..docs.add('The ambiance for this object.'.asDocComment)
-                      ..body = _soundReferenceCode(ambiance)
+                      ..body = Code.scope(
+                        (final allocate) =>
+                            _soundReferenceCode(ambiance, allocate),
+                      )
                       ..lambda = true
                       ..returns = soundReferenceRefer
                       ..type = MethodType.getter;

@@ -248,13 +248,14 @@ class AngstromEditorState extends State<AngstromEditor> {
                   ),
                 ],
                 ...EventCommandsPerformableActions(
+                  editorContext: editorContext,
                   events: [AngstromEventType.onEnter, AngstromEventType.onExit],
                   map: editorRoom.eventCommands,
                   save: () {
                     editorContext.save();
                     setState(() {});
                   },
-                ).getActions(context, editorContext),
+                ).getActions(context),
                 PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,

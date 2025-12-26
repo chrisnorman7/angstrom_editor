@@ -8,10 +8,14 @@ import 'package:flutter/material.dart';
 class EventCommandsPerformableActions {
   /// Create an instance.
   const EventCommandsPerformableActions({
+    required this.editorContext,
     required this.events,
     required this.map,
     required this.save,
   });
+
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// The events which will be looked for in [map].
   final Iterable<AngstromEventType> events;
@@ -23,10 +27,7 @@ class EventCommandsPerformableActions {
   final VoidCallback save;
 
   /// The actions for this map.
-  Iterable<PerformableAction> getActions(
-    final BuildContext context,
-    final EditorContext editorContext,
-  ) sync* {
+  Iterable<PerformableAction> getActions(final BuildContext context) sync* {
     for (final event in events) {
       final command = map[event];
       if (command == null) {
@@ -43,8 +44,11 @@ class EventCommandsPerformableActions {
         yield PerformableAction(
           name: 'Edit ${event.name} (${command.comment})',
           invoke: () => context.pushWidgetBuilder(
-            (_) =>
-                EditEditorEventCommandScreen(command: command, onChange: save),
+            (_) => EditEditorEventCommandScreen(
+              editorContext: editorContext,
+              command: command,
+              onChange: save,
+            ),
           ),
         );
         yield PerformableAction(

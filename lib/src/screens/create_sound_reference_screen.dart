@@ -10,10 +10,14 @@ import 'package:path/path.dart' as path;
 class CreateSoundReferenceScreen extends StatefulWidget {
   /// Create an instance.
   const CreateSoundReferenceScreen({
+    required this.editorContext,
     required this.onChange,
     this.soundReference,
     super.key,
   });
+
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// The function to call when [soundReference] changes.
   final ValueChanged<SoundReference> onChange;
@@ -36,7 +40,7 @@ class CreateSoundReferenceScreenState
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final editorContext = EditorContextScope.of(context).editorContext;
+    final editorContext = widget.editorContext;
     final soundPaths = _soundPaths;
     if (soundPaths == null) {
       final soundReference = widget.soundReference;

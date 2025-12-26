@@ -134,6 +134,7 @@ class RoomObjectListTile extends StatelessWidget {
           },
         ),
         ...EventCommandsPerformableActions(
+          editorContext: editorContext,
           events: [
             AngstromEventType.onApproach,
             AngstromEventType.onActivate,
@@ -144,7 +145,7 @@ class RoomObjectListTile extends StatelessWidget {
             editorContext.save();
             onChange();
           },
-        ).getActions(context, editorContext),
+        ).getActions(context),
         PerformableAction(
           name: 'Copy door code',
           invoke: () {
