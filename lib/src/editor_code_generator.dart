@@ -473,6 +473,14 @@ class EditorCodeGenerator {
                         ..toThis = true;
                     });
                   }),
+                  ...['musicFadeIn', 'musicFadeOut'].map(
+                    (final name) => Parameter((final p) {
+                      p
+                        ..name = name
+                        ..named = true
+                        ..toSuper = true;
+                    }),
+                  ),
                 ]);
             }),
           )

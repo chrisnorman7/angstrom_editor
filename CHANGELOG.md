@@ -6,6 +6,7 @@
 - Required `editorContext` in a few places.
 - Add all rooms to the `CustomEngine` class.
 - Add room name prefixes to object base classes.
+- Allow the specifying of music fade times in `CustomEngine` classes.
 
 ## 0.4.0
 
