@@ -221,7 +221,7 @@ class EditorCodeGenerator {
           Class((final c) {
             final ambiance = object.ambiance;
             c
-              ..name = '${object.name.pascalCase}$base'
+              ..name = '$roomClassName${object.name.pascalCase}$base'
               ..abstract = true
               ..docs.add('Events for the ${object.name} object.'.asDocComment)
               ..constructors.add(
@@ -523,11 +523,7 @@ class EditorCodeGenerator {
                     );
                     buffer
                       ..writeln('${editorRoom.name} events.'.asInlineComment)
-                      ..writeln('${literalString(roomId)}:');
-                    if (editorRoom.eventCommands.isEmpty) {
-                      buffer.write('const ');
-                    }
-                    buffer
+                      ..writeln('${literalString(roomId)}: ')
                       ..writeln('${allocate(loadedRoomEvents)}(')
                       ..writeln('surfaceEvents: {');
                     for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
@@ -536,9 +532,8 @@ class EditorCodeGenerator {
                         continue;
                       }
                       buffer
-                        ..writeln(
-                          '${literalString(surface.id)}: // ${surface.name}',
-                        )
+                        ..writeln('${surface.name}.'.asInlineComment)
+                        ..write('${literalString(surface.id)}: ')
                         ..writeln(
                           // ignore: lines_longer_than_80_chars
                           '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
@@ -548,9 +543,9 @@ class EditorCodeGenerator {
                           ..write('${event.name}: ')
                           ..write(roomGetterName)
                           ..write('.')
-                          ..writeln(surface.name.camelCase)
+                          ..write(surface.name.camelCase)
                           ..write('.')
-                          ..write('${event.name}$commandSuffix');
+                          ..write('${event.name}$commandSuffix,');
                       }
                       buffer.writeln('),');
                     }
@@ -563,9 +558,8 @@ class EditorCodeGenerator {
                         continue;
                       }
                       buffer
-                        ..writeln(
-                          '${literalString(object.id)}: // ${object.name}',
-                        )
+                        ..writeln('${object.name}.'.asInlineComment)
+                        ..writeln('${literalString(object.id)}: ')
                         ..writeln(
                           // ignore: lines_longer_than_80_chars
                           '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
@@ -575,9 +569,9 @@ class EditorCodeGenerator {
                           ..write('${event.name}: ')
                           ..write(roomGetterName)
                           ..write('.')
-                          ..writeln(object.name.camelCase)
+                          ..write(object.name.camelCase)
                           ..write('.')
-                          ..write('${event.name}$commandSuffix');
+                          ..write('${event.name}$commandSuffix,');
                       }
                       buffer.writeln('),');
                     }

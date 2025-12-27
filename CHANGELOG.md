@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.4.1
+## 0.5.0
 
 - Create the rooms directory if it does not exist.
 - Required `editorContext` in a few places.
 - Add all rooms to the `CustomEngine` class.
+- Add room name prefixes to object base classes.
 
 ## 0.4.0
 
