@@ -153,28 +153,16 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                 onChange();
               },
             ),
-            for (final event in [
-              AngstromEventType.onEnter,
-              AngstromEventType.onMove,
-              AngstromEventType.onExit,
-            ])
-              ...() {
-                final command = surface.eventCommands[event];
-                if (command == null) {
-                  return [PerformableAction(name: 'Add ${event.name}')];
-                }
-                return [
-                  PerformableAction(name: 'Edit ${event.name}'),
-                  PerformableAction(
-                    name: 'Delete ${event.name}',
-                    invoke: () {
-                      surface.eventCommands.remove(event);
-                      editorContext.save();
-                      onChange();
-                    },
-                  ),
-                ];
-              }(),
+            ...EventCommandsPerformableActions(
+              editorContext: editorContext,
+              events: [
+                AngstromEventType.onEnter,
+                AngstromEventType.onMove,
+                AngstromEventType.onExit,
+              ],
+              map: surface.eventCommands,
+              save: onChange,
+            ).getActions(context),
             PerformableAction(
               name: 'delete',
               activator: deleteShortcut,
