@@ -8,6 +8,7 @@
 - Add room name prefixes to object base classes.
 - Allow the specifying of music fade times in `CustomEngine` classes.
 - Fix a bug where surface events were not added.
+- Added `LoadedRoom.className` and `LoadedRoom.getterName` to aid in code generation.
 
 ## 0.4.0
 

@@ -1,5 +1,7 @@
 import 'package:angstrom/angstrom.dart';
 import 'package:angstrom_editor/angstrom_editor.dart';
+import 'package:path/path.dart' as p;
+import 'package:recase/recase.dart';
 
 /// A room which derives its property from [editorRoom].
 class LoadedRoom extends Room {
@@ -73,4 +75,10 @@ class LoadedRoom extends Room {
   void onLeave(final AngstromEngine engine) {
     events.onLeave?.call(engine);
   }
+
+  /// A suitable class name for this room.
+  String get className => p.basenameWithoutExtension(id).pascalCase;
+
+  /// A suitable getter name for this room.
+  String get getterName => className.camelCase;
 }

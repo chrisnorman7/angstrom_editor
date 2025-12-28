@@ -106,6 +106,21 @@ class EditorCodeGenerator {
     if (command.hasHandler) {
       buffer.writeln('${eventType.name}(engine);');
     }
+    final door = command.door;
+    if (door != null) {
+      final targetRoomId = door.targetRoomId.replaceAll(r'\', '/');
+      buffer
+        ..writeln('${allocate(refer('Door', angstromPackage))}(')
+        ..write('coordinates: ${allocate(refer('Point', 'dart:math'))}(')
+        ..write('${door.x}, ${door.y}),')
+        ..writeln('destinationId: ${literalString(targetRoomId)},')
+        ..writeln('stopPlayer: ${door.stopPlayer},');
+      final useSound = door.useSound;
+      if (useSound != null) {
+        buffer.writeln('useSound: ${_soundReferenceCode(useSound, allocate)},');
+      }
+      buffer.writeln(').onActivate(engine);');
+    }
     return buffer.toString();
   });
 
@@ -140,7 +155,7 @@ class EditorCodeGenerator {
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
     for (final room in rooms) {
-      final roomClassName = room.editorRoom.name.pascalCase;
+      final roomClassName = room.className;
       final editorRoom = room.editorRoom;
       final soundReferenceRefer = refer('SoundReference', angstromPackage);
       final surfaceClasses = [
@@ -417,6 +432,9 @@ class EditorCodeGenerator {
   bool writeEngineCode() {
     final string = refer('String');
     final roomCodeClasses = _writeRooms().toList();
+    if (roomCodeClasses.length != rooms.length) {
+      return false;
+    }
     _writeRoomExports(
       roomCodeClasses.map((final roomCode) => roomCode.filename),
     );
@@ -464,10 +482,10 @@ class EditorCodeGenerator {
                     }),
                   ),
                   ...roomCodeClasses.map((final roomCode) {
-                    final room = roomCode.room.editorRoom;
+                    final room = roomCode.room;
                     return Parameter((final p) {
                       p
-                        ..name = room.name.camelCase
+                        ..name = room.getterName
                         ..named = true
                         ..required = true
                         ..toThis = true;
@@ -486,13 +504,13 @@ class EditorCodeGenerator {
           )
           ..fields.addAll(
             roomCodeClasses.map((final roomCode) {
-              final room = roomCode.room.editorRoom;
+              final room = roomCode.room;
               final roomClass = roomCode.roomClass;
               return Field((final f) {
                 f
-                  ..name = room.name.camelCase
+                  ..name = room.getterName
                   ..docs.add(
-                    'Events for ${room.name}. Used by [buildRoom].'
+                    'Events for ${room.editorRoom.name}. Used by [buildRoom].'
                         .asDocComment,
                   )
                   ..modifier = FieldModifier.final$
