@@ -133,6 +133,14 @@ class EditEditorEventCommandScreenState
               },
               title: const Text('Extra code needed'),
             ),
+            EngineCommandListTile(
+              engineCommands: widget.editorContext.engineCommands,
+              onChange: (final value) {
+                command.engineCommandId = value?.id;
+                save();
+              },
+              engineCommandId: command.engineCommandId,
+            ),
           ],
         ),
       ),
