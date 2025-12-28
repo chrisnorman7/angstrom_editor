@@ -17,18 +17,8 @@ final nonVirtualAnnotation = refer('nonVirtual', 'package:meta/meta.dart');
 /// The name of the Angstrom package.
 const angstromPackage = 'package:angstrom/angstrom.dart';
 
-/// Refer to the engine.
-final angstromEngineRef = refer('AngstromEngine', angstromPackage);
-
 /// The type of an allocate function from `code_builder`.
 typedef Allocate = String Function(Reference);
-
-/// The engine parameter.
-final engineParameter = Parameter((final p) {
-  p
-    ..name = 'engine'
-    ..type = angstromEngineRef;
-});
 
 /// The suffix for all base classes.
 const base = 'Base';
@@ -58,6 +48,20 @@ class EditorCodeGenerator {
 
   /// The path to the file where the engine code will be stored.
   final String engineCodePath;
+
+  /// The class name for the custom engine.
+  String get engineClassName =>
+      path.basenameWithoutExtension(engineCodePath).pascalCase;
+
+  /// The engine reference to use.
+  Reference get engineRef => refer('AngstromEngine', angstromPackage);
+
+  /// The engine parameter.
+  Parameter get engineParameter => Parameter((final p) {
+    p
+      ..name = 'engine'
+      ..type = engineRef;
+  });
 
   /// The line splitter to use.
   final LineSplitter lineSplitter;
@@ -124,6 +128,23 @@ class EditorCodeGenerator {
         buffer.writeln('useSound: ${_soundReferenceCode(useSound, allocate)},');
       }
       buffer.writeln(').onActivate(engine);');
+    }
+    final engineCommandId = command.engineCommandId;
+    if (engineCommandId != null) {
+      final engineCommand = engineCommands.firstWhere(
+        (final c) => c.id == engineCommandId,
+      );
+      final customEngine = allocate(
+        refer(
+          engineClassName,
+          path
+              .relative(engineCodePath, from: codeDirectory.path)
+              .replaceAll(r'\', '/'),
+        ),
+      );
+      buffer.writeln(
+        '(engine as $customEngine).${engineCommand.getterName}(engine);',
+      );
     }
     return buffer.toString();
   });
@@ -450,9 +471,6 @@ class EditorCodeGenerator {
         ..symbol = 'Map'
         ..types.addAll([string, loadedRoomEvents]);
     });
-    final engineClassName = path
-        .basenameWithoutExtension(engineCodePath)
-        .pascalCase;
     final assetLoadingEngine = refer(
       'AssetLoadingAngstromEngine',
       angstromEditorPackage,
@@ -545,7 +563,7 @@ class EditorCodeGenerator {
                   ..type = FunctionType((final f) {
                     f
                       ..returnType = refer('void')
-                      ..requiredParameters.add(angstromEngineRef);
+                      ..requiredParameters.add(engineRef);
                   });
               }),
             ),
