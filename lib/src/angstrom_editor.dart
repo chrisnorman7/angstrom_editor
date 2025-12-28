@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -18,6 +19,7 @@ class AngstromEditor extends StatefulWidget {
   /// Create an instance.
   const AngstromEditor({
     required this.directory,
+    required this.engineCommandsFile,
     required this.footsteps,
     required this.musicSoundPaths,
     required this.ambianceSoundPaths,
@@ -51,6 +53,9 @@ class AngstromEditor extends StatefulWidget {
 
   /// The directory where room files are kept.
   final Directory directory;
+
+  /// The file which contains engine commands.
+  final File engineCommandsFile;
 
   /// The possible footstep sounds.
   final List<FootstepsSounds> footsteps;
@@ -135,6 +140,17 @@ class AngstromEditorState extends State<AngstromEditor> {
   /// Get get sound function.
   GetSound get getSound => widget.getSound ?? defaultGetSound;
 
+  /// The engine commands which have been created.
+  List<EngineCommand> get engineCommands {
+    if (widget.engineCommandsFile.existsSync()) {
+      final json =
+          jsonDecode(widget.engineCommandsFile.readAsStringSync())
+              as Map<String, dynamic>;
+      return EngineCommands.fromJson(json).engineCommands;
+    }
+    return [];
+  }
+
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
@@ -166,6 +182,7 @@ class AngstromEditorState extends State<AngstromEditor> {
             getExamineObjectDistance: widget.getExamineObjectDistance,
             getExamineObjectOrdering: widget.getExamineObjectOrdering,
             onNoRoomObjects: widget.onNoRoomObjects,
+            engineCommands: engineCommands,
           );
           final musicReference = editorRoom.music;
           final sound = musicReference == null
@@ -327,6 +344,24 @@ class AngstromEditorState extends State<AngstromEditor> {
         activator: buildShortcut,
         invoke: () => _buildRoomsCode(rooms),
       ),
+      PerformableAction(
+        name: 'Edit engine commands',
+        activator: editEngineCommands,
+        invoke: () => context.pushWidgetBuilder(
+          (_) => EngineCommandsScreen(
+            roomsDirectory: widget.directory,
+            engineCommands: engineCommands,
+            newId: newId,
+            saveEngineCommands: () {
+              final json = encoder.convert(
+                EngineCommands(engineCommands: engineCommands),
+              );
+              widget.engineCommandsFile.writeAsStringSync(json);
+              setState(() {});
+            },
+          ),
+        ),
+      ),
     ]);
     return MenuAnchor(
       menuChildren: actionsContext.menuChildren,
@@ -358,6 +393,7 @@ class AngstromEditorState extends State<AngstromEditor> {
     try {
       final editorCodeGenerator = EditorCodeGenerator(
         rooms: rooms,
+        engineCommands: engineCommands,
         codeDirectory: codeDirectory,
         engineCodePath: widget.engineCodePath,
       );

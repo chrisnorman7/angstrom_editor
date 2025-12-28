@@ -22,6 +22,7 @@ class EditorContext {
     required this.getExamineObjectDistance,
     required this.getExamineObjectOrdering,
     required this.onNoRoomObjects,
+    required this.engineCommands,
   });
 
   /// The file where [room] is saved.
@@ -66,6 +67,9 @@ class EditorContext {
 
   /// The function to call to handle the [NoRoomObjects] event.
   final NoRoomObjectsCallback onNoRoomObjects;
+
+  /// The engine commands which have been created.
+  final List<EngineCommand> engineCommands;
 
   /// Save [room].
   void save() {

@@ -13,6 +13,8 @@ class EditorEventCommand {
     this.spokenText,
     this.interfaceSound,
     this.hasHandler = false,
+    this.door,
+    this.engineCommandId,
   });
 
   /// Create an instance from a JSON object.
@@ -33,6 +35,9 @@ class EditorEventCommand {
 
   /// A door to send the player through.
   EditorDoor? door;
+
+  /// The ID of the [EngineCommand] which this command will call.
+  String? engineCommandId;
 
   /// Convert an instance to JSON.
   Map<String, dynamic> toJson() => _$EditorEventCommandToJson(this);

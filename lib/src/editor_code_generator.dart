@@ -38,6 +38,7 @@ class EditorCodeGenerator {
   /// Create an instance.
   EditorCodeGenerator({
     required this.rooms,
+    required this.engineCommands,
     required this.codeDirectory,
     required this.engineCodePath,
   }) : lineSplitter = const LineSplitter(),
@@ -48,6 +49,9 @@ class EditorCodeGenerator {
 
   /// The rooms to write code for.
   final List<LoadedRoom> rooms;
+
+  /// The engine commands.
+  final List<EngineCommand> engineCommands;
 
   /// The directory where code should be written.
   final Directory codeDirectory;
@@ -491,6 +495,15 @@ class EditorCodeGenerator {
                         ..toThis = true;
                     });
                   }),
+                  ...engineCommands.map(
+                    (final command) => Parameter((final p) {
+                      p
+                        ..name = command.getterName
+                        ..named = true
+                        ..required = true
+                        ..toThis = true;
+                    }),
+                  ),
                   ...['musicFadeIn', 'musicFadeOut'].map(
                     (final name) => Parameter((final p) {
                       p
@@ -502,8 +515,8 @@ class EditorCodeGenerator {
                 ]);
             }),
           )
-          ..fields.addAll(
-            roomCodeClasses.map((final roomCode) {
+          ..fields.addAll([
+            ...roomCodeClasses.map((final roomCode) {
               final room = roomCode.room;
               final roomClass = roomCode.roomClass;
               return Field((final f) {
@@ -523,7 +536,20 @@ class EditorCodeGenerator {
                   );
               });
             }),
-          )
+            ...engineCommands.map(
+              (final command) => Field((final f) {
+                f
+                  ..name = command.getterName
+                  ..docs.add(command.comment.asDocComment)
+                  ..modifier = FieldModifier.final$
+                  ..type = FunctionType((final f) {
+                    f
+                      ..returnType = refer('void')
+                      ..requiredParameters.add(angstromEngineRef);
+                  });
+              }),
+            ),
+          ])
           ..methods.add(
             Method((final m) {
               m
