@@ -34,10 +34,17 @@ class EventCommandsPerformableActions {
         yield PerformableAction(
           name: 'Add ${event.name}',
           invoke: () {
-            map[event] = EditorEventCommand(
+            final command = EditorEventCommand(
               comment: 'The ${event.name} event.',
             );
-            save();
+            map[event] = command;
+            context.pushWidgetBuilder(
+              (_) => EditEditorEventCommandScreen(
+                editorContext: editorContext,
+                command: command,
+                onChange: save,
+              ),
+            );
           },
         );
       } else {

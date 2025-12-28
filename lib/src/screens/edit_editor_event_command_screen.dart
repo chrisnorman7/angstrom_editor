@@ -86,37 +86,28 @@ class EditEditorEventCommandScreenState
               soundReference: command.interfaceSound,
               title: 'Interface sound',
             ),
-            PerformableActionsListTile(
-              actions: [
-                if (door == null)
-                  PerformableAction(
-                    name: 'Make Door',
-                    activator: doorShortcut,
-                    invoke: () => context.pushWidgetBuilder(
-                      (_) => SelectDoorTargetScreen(
-                        roomsDirectory: widget.editorContext.file.parent,
-                        onChange: (final value) {
-                          final door = EditorDoor(
-                            targetObjectId: value.object.id,
-                            x: value.object.x,
-                            y: value.object.y,
-                            targetRoomId: value.room.id,
-                          );
-                          command.door = door;
-                          save();
-                        },
-                        getSound: widget.editorContext.getSound,
-                      ),
-                    ),
-                  )
-                else ...[
-                  PerformableAction(
-                    name: 'Edit door',
-                    activator: doorShortcut,
-                    invoke: () => context.pushWidgetBuilder(
-                      (_) => EditDoorScreen(door: door),
-                    ),
+            if (door == null)
+              ListTile(
+                title: const Text('Add door'),
+                onTap: () => context.pushWidgetBuilder(
+                  (_) => SelectDoorTargetScreen(
+                    roomsDirectory: widget.editorContext.file.parent,
+                    onChange: (final value) {
+                      command.door = EditorDoor(
+                        targetObjectId: value.object.id,
+                        x: value.object.x,
+                        y: value.object.y,
+                        targetRoomId: value.room.id,
+                      );
+                      save();
+                    },
+                    getSound: widget.editorContext.getSound,
                   ),
+                ),
+              )
+            else
+              PerformableActionsListTile(
+                actions: [
                   PerformableAction(
                     name: 'Delete door',
                     activator: deleteShortcut,
@@ -126,8 +117,14 @@ class EditEditorEventCommandScreenState
                     },
                   ),
                 ],
-              ],
-            ),
+                title: const Text('Edit Door'),
+                onTap: () => context.pushWidgetBuilder(
+                  (_) => EditDoorScreen(
+                    editorContext: widget.editorContext,
+                    door: door,
+                  ),
+                ),
+              ),
             CheckboxListTile(
               value: command.hasHandler,
               onChanged: (final value) {

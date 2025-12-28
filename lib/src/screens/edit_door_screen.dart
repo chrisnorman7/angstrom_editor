@@ -9,7 +9,14 @@ import 'package:flutter/material.dart';
 /// A screen for editing a [door].
 class EditDoorScreen extends StatefulWidget {
   /// Create an instance.
-  const EditDoorScreen({required this.door, super.key});
+  const EditDoorScreen({
+    required this.editorContext,
+    required this.door,
+    super.key,
+  });
+
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// The door to change.
   final EditorDoor door;
@@ -34,7 +41,7 @@ class EditDoorScreenState extends State<EditDoorScreen> {
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final currentEditorContext = context.editorContext;
+    final currentEditorContext = widget.editorContext;
     final roomsDirectory = currentEditorContext.file.parent;
     final rooms = roomsDirectory.rooms.toList();
     final room = rooms.firstWhere((final room) => room.id == door.targetRoomId);
@@ -118,7 +125,7 @@ class EditDoorScreenState extends State<EditDoorScreen> {
 
   /// Save the [door].
   void save() {
-    context.editorContext.save();
+    widget.editorContext.save();
     setState(() {});
   }
 }
