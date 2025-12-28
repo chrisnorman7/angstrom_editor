@@ -23,6 +23,7 @@ export 'src/json/engine_commands.dart';
 export 'src/loaded_room.dart';
 export 'src/loaded_room_events.dart';
 export 'src/room_code.dart';
+export 'src/room_testing_angstrom_engine.dart';
 export 'src/screens/create_sound_reference_screen.dart';
 export 'src/screens/edit_comment_screen.dart';
 export 'src/screens/edit_door_screen.dart';
