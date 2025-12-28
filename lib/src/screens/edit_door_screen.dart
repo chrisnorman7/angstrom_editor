@@ -44,7 +44,10 @@ class EditDoorScreenState extends State<EditDoorScreen> {
     final currentEditorContext = widget.editorContext;
     final roomsDirectory = currentEditorContext.file.parent;
     final rooms = roomsDirectory.rooms.toList();
-    final room = rooms.firstWhere((final room) => room.id == door.targetRoomId);
+    final room = rooms.firstWhere(
+      (final room) => room.id == door.targetRoomId,
+      orElse: () => rooms.first,
+    );
     final editorContext = EditorContext(
       file: File(room.path),
       room: room,
