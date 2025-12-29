@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- Add call tracing for `EngineCommand`s.
+
 ## 0.5.0
 
 - Create the rooms directory if it does not exist.
