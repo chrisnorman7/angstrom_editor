@@ -358,9 +358,8 @@ class EditorCodeGenerator {
                       'The point where this object will start out in the room.'
                           .asDocComment,
                     )
-                    ..body = Code.scope(
-                      (final allocate) =>
-                          'const ${allocate(point)}(${object.x}, ${object.y})',
+                    ..body = Code(
+                      'const ${allocate(point)}(${object.x}, ${object.y})',
                     )
                     ..lambda = true
                     ..returns = TypeReference((final t) {
@@ -647,82 +646,6 @@ class EditorCodeGenerator {
               ])
               ..methods.add(
                 Method((final m) {
-                  final buffer = StringBuffer()..writeln('{');
-                  for (var i = 0; i < roomCodeClasses.length; i++) {
-                    final roomCode = roomCodeClasses[i];
-                    final room = roomCode.room;
-                    final editorRoom = room.editorRoom;
-                    final roomId = room.id;
-                    final roomClass = roomCode.roomClass;
-                    final roomGetterName = roomClass.name.camelCase.substring(
-                      0,
-                      roomClass.name.length - base.length,
-                    );
-                    final allocate = emitter.allocator.allocate;
-                    buffer
-                      ..writeln('${editorRoom.name} events.'.asInlineComment)
-                      ..writeln('${literalString(roomId)}: ')
-                      ..writeln('${allocate(loadedRoomEvents)}(')
-                      ..writeln('surfaceEvents: {');
-                    for (var j = 0; j < roomCode.surfaceClasses.length; j++) {
-                      final surface = editorRoom.surfaces[j];
-                      if (surface.eventCommands.isEmpty) {
-                        continue;
-                      }
-                      buffer
-                        ..writeln('${surface.name}.'.asInlineComment)
-                        ..write('${literalString(surface.id)}: ')
-                        ..writeln(
-                          // ignore: lines_longer_than_80_chars
-                          '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
-                        );
-                      for (final event in surface.eventCommands.keys) {
-                        buffer
-                          ..write('${event.name}: ')
-                          ..write(roomGetterName)
-                          ..write('.')
-                          ..write(surface.name.camelCase)
-                          ..write('.')
-                          ..write('${event.name}$commandSuffix,');
-                      }
-                      buffer.writeln('),');
-                    }
-                    buffer
-                      ..writeln('},')
-                      ..writeln('objectEvents: {');
-                    for (var j = 0; j < roomCode.objectClasses.length; j++) {
-                      final object = editorRoom.objects[j];
-                      if (object.eventCommands.isEmpty) {
-                        continue;
-                      }
-                      buffer
-                        ..writeln('${object.name}.'.asInlineComment)
-                        ..writeln('${literalString(object.id)}: ')
-                        ..writeln(
-                          // ignore: lines_longer_than_80_chars
-                          '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
-                        );
-                      for (final event in object.eventCommands.keys) {
-                        buffer
-                          ..write('${event.name}: ')
-                          ..write(roomGetterName)
-                          ..write('.')
-                          ..write(object.name.camelCase)
-                          ..write('.')
-                          ..write('${event.name}$commandSuffix,');
-                      }
-                      buffer.writeln('),');
-                    }
-                    buffer.writeln('},');
-                    for (final event in editorRoom.eventCommands.keys) {
-                      final name = event.name;
-                      buffer.writeln(
-                        '$name: $roomGetterName.$name$commandSuffix,',
-                      );
-                    }
-                    buffer.writeln('),');
-                  }
-                  buffer.writeln('}');
                   m
                     ..annotations.add(refer('override'))
                     ..name = 'roomEvents'
@@ -733,7 +656,92 @@ class EditorCodeGenerator {
                     ..returns = roomEventsMap
                     ..lambda = true
                     ..type = MethodType.getter
-                    ..body = Code(buffer.toString());
+                    ..body = Code.scope((final allocate) {
+                      final buffer = StringBuffer()..writeln('{');
+                      for (var i = 0; i < roomCodeClasses.length; i++) {
+                        final roomCode = roomCodeClasses[i];
+                        final room = roomCode.room;
+                        final editorRoom = room.editorRoom;
+                        final roomId = room.id;
+                        final roomClass = roomCode.roomClass;
+                        final roomGetterName = roomClass.name.camelCase
+                            .substring(0, roomClass.name.length - base.length);
+                        buffer
+                          ..writeln(
+                            '${editorRoom.name} events.'.asInlineComment,
+                          )
+                          ..writeln('${literalString(roomId)}: ')
+                          ..writeln('${allocate(loadedRoomEvents)}(')
+                          ..writeln('surfaceEvents: {');
+                        for (
+                          var j = 0;
+                          j < roomCode.surfaceClasses.length;
+                          j++
+                        ) {
+                          final surface = editorRoom.surfaces[j];
+                          if (surface.eventCommands.isEmpty) {
+                            continue;
+                          }
+                          buffer
+                            ..writeln('${surface.name}.'.asInlineComment)
+                            ..write('${literalString(surface.id)}: ')
+                            ..writeln(
+                              // ignore: lines_longer_than_80_chars
+                              '${allocate(refer('EditorRoomSurfaceEvents', angstromEditorPackage))}(',
+                            );
+                          for (final event in surface.eventCommands.keys) {
+                            buffer
+                              ..write('${event.name}: ')
+                              ..write(roomGetterName)
+                              ..write('.')
+                              ..write(surface.name.camelCase)
+                              ..write('.')
+                              ..write('${event.name}$commandSuffix,');
+                          }
+                          buffer.writeln('),');
+                        }
+                        buffer
+                          ..writeln('},')
+                          ..writeln('objectEvents: {');
+                        for (
+                          var j = 0;
+                          j < roomCode.objectClasses.length;
+                          j++
+                        ) {
+                          final object = editorRoom.objects[j];
+                          if (object.eventCommands.isEmpty) {
+                            continue;
+                          }
+                          buffer
+                            ..writeln('${object.name}.'.asInlineComment)
+                            ..writeln('${literalString(object.id)}: ')
+                            ..writeln(
+                              // ignore: lines_longer_than_80_chars
+                              '${allocate(refer('EditorRoomObjectEvents', angstromEditorPackage))}(',
+                            );
+                          for (final event in object.eventCommands.keys) {
+                            buffer
+                              ..write('${event.name}: ')
+                              ..write(roomGetterName)
+                              ..write('.')
+                              ..write(object.name.camelCase)
+                              ..write('.')
+                              ..write('${event.name}$commandSuffix,');
+                          }
+                          buffer.writeln('),');
+                        }
+                        buffer.writeln('},');
+                        for (final event in editorRoom.eventCommands.keys) {
+                          final name = event.name;
+                          buffer.writeln(
+                            '$name: $roomGetterName.$name$commandSuffix,',
+                          );
+                        }
+                        buffer.writeln('),');
+                      }
+                      buffer.writeln('}');
+                      return buffer.toString();
+                    });
                 }),
               );
           }),
