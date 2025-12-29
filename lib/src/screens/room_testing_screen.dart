@@ -4,24 +4,13 @@ import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
-/// A screen for testing the given [room].
+/// A screen for testing a room.
 class RoomTestingScreen extends StatefulWidget {
   /// Create an instance.
-  const RoomTestingScreen({
-    required this.rooms,
-    required this.room,
-    required this.getSound,
-    super.key,
-  });
+  const RoomTestingScreen({required this.editorContext, super.key});
 
-  /// The rooms to use.
-  final List<LoadedRoom> rooms;
-
-  /// The room to test with.
-  final LoadedRoom room;
-
-  /// The get sound function to use.
-  final GetSound getSound;
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// Create state for this widget.
   @override
@@ -38,20 +27,20 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
   void initState() {
     super.initState();
     engine = RoomTestingAngstromEngine(
-      startRoom: widget.room,
-      rooms: widget.rooms,
+      startRoom: widget.editorContext.room,
+      rooms: rooms,
     );
   }
 
   /// Build a widget.
   @override
   Widget build(final BuildContext context) {
-    final editorRoom = widget.room.editorRoom;
+    final editorRoom = widget.editorContext.room.editorRoom;
     return Cancel(
       child: GameScreen(
         engine: engine,
         title: 'Test ${editorRoom.name}',
-        getSound: widget.getSound,
+        getSound: widget.editorContext.getSound,
         gameShortcutsBuilder: (final context, final shortcuts) {
           shortcuts.addAll([
             GameShortcut(
@@ -60,7 +49,7 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
               onStart: (final innerContext) {
                 innerContext.pushWidgetBuilder(
                   (_) => SelectRoomScreen(
-                    rooms: widget.rooms,
+                    rooms: rooms,
                     onChange: (final value) => engine.teleportPlayer(
                       value.id,
                       value.editorRoom.surfaces.first.points.first.coordinates,
@@ -84,6 +73,39 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
                 );
               },
             ),
+            GameShortcut(
+              title: 'Jump to object',
+              shortcut: GameShortcutsShortcut.keyJ,
+              onStart: (final innerContext) {
+                final editorContext = EditorContext(
+                  room: engine.loadedRoom,
+                  getSound: widget.editorContext.getSound,
+                  newId: widget.editorContext.newId,
+                  footsteps: widget.editorContext.footsteps,
+                  musicSoundPaths: widget.editorContext.musicSoundPaths,
+                  ambianceSoundPaths: widget.editorContext.ambianceSoundPaths,
+                  doorSounds: widget.editorContext.doorSounds,
+                  wallAttenuation: widget.editorContext.wallAttenuation,
+                  wallFactor: widget.editorContext.wallFactor,
+                  onExamineObject: widget.editorContext.onExamineObject,
+                  getExamineObjectDistance:
+                      widget.editorContext.getExamineObjectDistance,
+                  getExamineObjectOrdering:
+                      widget.editorContext.getExamineObjectOrdering,
+                  onNoRoomObjects: widget.editorContext.onNoRoomObjects,
+                  engineCommands: widget.editorContext.engineCommands,
+                );
+                innerContext.pushWidgetBuilder(
+                  (_) => SelectObjectScreen(
+                    editorContext: editorContext,
+                    objects: engine.loadedRoom.editorRoom.objects,
+                    onChange: (final value) {
+                      engine.teleportPlayer(engine.room.id, value.coordinates);
+                    },
+                  ),
+                );
+              },
+            ),
           ]);
           return shortcuts;
         },
@@ -103,4 +125,7 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
       ),
     );
   }
+
+  /// Get the rooms for the editor context.
+  List<LoadedRoom> get rooms => widget.editorContext.file.parent.rooms.toList();
 }

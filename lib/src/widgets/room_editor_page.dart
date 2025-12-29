@@ -324,6 +324,7 @@ class RoomEditorPageState extends State<RoomEditorPage> {
                 } else {
                   innerContext.pushWidgetBuilder(
                     (_) => SelectObjectScreen(
+                      editorContext: _editorContext,
                       objects: objects,
                       onChange: (final value) =>
                           setState(() => _movingObject = value),

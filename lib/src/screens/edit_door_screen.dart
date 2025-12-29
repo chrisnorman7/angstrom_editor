@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
@@ -49,7 +47,6 @@ class EditDoorScreenState extends State<EditDoorScreen> {
       orElse: () => rooms.first,
     );
     final editorContext = EditorContext(
-      file: File(room.path),
       room: room,
       getSound: currentEditorContext.getSound,
       newId: currentEditorContext.newId,

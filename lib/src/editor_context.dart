@@ -8,7 +8,6 @@ import 'package:flutter_audio_games/flutter_audio_games.dart' show Sound;
 class EditorContext {
   /// Create an instance.
   const EditorContext({
-    required this.file,
     required this.room,
     required this.getSound,
     required this.newId,
@@ -25,11 +24,11 @@ class EditorContext {
     required this.engineCommands,
   });
 
-  /// The file where [room] is saved.
-  final File file;
-
   /// The room to edit.
   final LoadedRoom room;
+
+  /// The file where [room] is saved.
+  File get file => File(room.path);
 
   /// The function which converts paths to [Sound]s.
   final GetSound getSound;

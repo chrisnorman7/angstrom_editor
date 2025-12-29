@@ -9,12 +9,16 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 class SelectObjectScreen extends StatelessWidget {
   /// Create an instance.
   const SelectObjectScreen({
+    required this.editorContext,
     required this.objects,
     required this.onChange,
     this.title = 'Select Object',
     this.objectId,
     super.key,
   });
+
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// The objects to select from.
   final List<EditorRoomObject> objects;
@@ -31,7 +35,7 @@ class SelectObjectScreen extends StatelessWidget {
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
-    final getSound = context.getSound;
+    final getSound = editorContext.getSound;
     return SimpleScaffold(
       title: title,
       body: ListView.builder(
@@ -58,6 +62,8 @@ class SelectObjectScreen extends StatelessWidget {
             ),
           );
         },
+        itemCount: objects.length,
+        shrinkWrap: true,
       ),
     );
   }

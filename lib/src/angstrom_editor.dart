@@ -165,10 +165,8 @@ class AngstromEditorState extends State<AngstromEditor> {
       child = ListView.builder(
         itemBuilder: (final context, final index) {
           final room = rooms[index];
-          final file = File(room.path);
           final editorRoom = room.editorRoom;
           final editorContext = EditorContext(
-            file: file,
             room: room,
             getSound: getSound,
             newId: newId,
@@ -278,11 +276,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                   activator: testShortcut,
                   invoke: () {
                     context.pushWidgetBuilder(
-                      (_) => RoomTestingScreen(
-                        rooms: rooms,
-                        room: room,
-                        getSound: getSound,
-                      ),
+                      (_) => RoomTestingScreen(editorContext: editorContext),
                     );
                   },
                 ),
