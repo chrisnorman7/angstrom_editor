@@ -28,6 +28,9 @@ class RoomTestingAngstromEngine extends AngstromEngine {
   /// The rooms which have been created.
   final List<LoadedRoom> rooms;
 
+  /// Get the current room.
+  LoadedRoom get loadedRoom => rooms.firstWhere((final r) => r.id == room.id);
+
   /// Build a room.
   @override
   FutureOr<LoadedRoom> buildRoom(final String id) {

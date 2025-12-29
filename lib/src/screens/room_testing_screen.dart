@@ -70,8 +70,35 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
                 );
               },
             ),
+            GameShortcut(
+              title: 'Announce current room',
+              shortcut: GameShortcutsShortcut.keyR,
+              onStart: (final innerContext) {
+                final room = engine.loadedRoom;
+                final editorRoom = room.editorRoom;
+                final eventNames = editorRoom.eventCommands.keys
+                    .map((final eventType) => eventType.name)
+                    .join(', ');
+                return engine.speak(
+                  '${editorRoom.name}: ${room.id} ( $eventNames)',
+                );
+              },
+            ),
           ]);
           return shortcuts;
+        },
+        onExamineObject: (final objectReference, final state) {
+          final object = engine.loadedRoom.editorRoom.objects.firstWhere(
+            (final o) =>
+                o.coordinates == objectReference.coordinates &&
+                o.name == objectReference.name,
+          );
+          final eventNames = object.eventCommands.keys
+              .map((final eventType) => eventType.name)
+              .join(', ');
+          engine.speak(
+            '${object.name}: ${object.x}, ${object.y} ($eventNames)',
+          );
         },
       ),
     );
