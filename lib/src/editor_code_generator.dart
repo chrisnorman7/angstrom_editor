@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:angstrom/angstrom.dart';
 import 'package:angstrom_editor/angstrom_editor.dart';
@@ -7,6 +8,9 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as path;
 import 'package:recase/recase.dart';
+
+/// The type of an allocate function from `code_builder`.
+typedef Allocate = String Function(Reference);
 
 /// The type of a [String].
 final string = refer('String');
@@ -20,8 +24,8 @@ const angstromPackage = 'package:angstrom/angstrom.dart';
 /// The name of the angstrom_editor package.
 const angstromEditorPackage = 'package:angstrom_editor/angstrom_editor.dart';
 
-/// The type of an allocate function from `code_builder`.
-typedef Allocate = String Function(Reference);
+/// The type of a [Point].
+final point = refer('Point', 'dart:math');
 
 /// The suffix for all base classes.
 const base = 'Base';
@@ -79,9 +83,9 @@ class EditorCodeGenerator {
   static const commandSuffix = 'Command';
 
   /// Return a sound [reference] as code.
-  String _soundReferenceCode(
-    final SoundReference reference,
+  Code _soundReferenceCode(
     final Allocate allocate,
+    final SoundReference reference,
   ) {
     final soundReference = allocate(
       refer('SoundReference', 'package:angstrom/angstrom.dart'),
@@ -93,7 +97,7 @@ class EditorCodeGenerator {
       buffer.writeln('volume: ${reference.volume},');
     }
     buffer.writeln(')');
-    return buffer.toString();
+    return Code(buffer.toString());
   }
 
   /// Returns the code for the given [command].
@@ -110,7 +114,7 @@ class EditorCodeGenerator {
     if (interfaceSoundReference != null) {
       buffer
         ..writeln('engine.playInterfaceSound(')
-        ..write(_soundReferenceCode(interfaceSoundReference, allocate))
+        ..write(_soundReferenceCode(allocate, interfaceSoundReference))
         ..writeln(',')
         ..writeln(');');
     }
@@ -129,7 +133,7 @@ class EditorCodeGenerator {
         ..writeln('stopPlayer: ${door.stopPlayer},');
       final useSound = door.useSound;
       if (useSound != null) {
-        buffer.writeln('useSound: ${_soundReferenceCode(useSound, allocate)},');
+        buffer.writeln('useSound: ${_soundReferenceCode(allocate, useSound)},');
       }
       buffer.writeln(').onActivate(engine);');
     }
@@ -140,7 +144,10 @@ class EditorCodeGenerator {
         angstromEditorPackage,
       );
       buffer.write('final caller = ${allocate(engineCommandCaller)}.');
-      final angstromEventType = refer('AngstromEventType', angstromPackage);
+      final angstromEventType = refer(
+        'AngstromEventType',
+        angstromEditorPackage,
+      );
       switch (caller) {
         case RoomEngineCommandCaller():
           buffer
@@ -217,6 +224,8 @@ class EditorCodeGenerator {
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
     for (final room in rooms) {
+      final emitter = DartEmitter.scoped();
+      final allocate = emitter.allocator.allocate;
       final roomClassName = room.className;
       final editorRoom = room.editorRoom;
       final soundReferenceRefer = refer('SoundReference', angstromPackage);
@@ -280,10 +289,7 @@ class EditorCodeGenerator {
                         'The sound which plays while on this surface.'
                             .asDocComment,
                       )
-                      ..body = Code.scope(
-                        (final allocate) =>
-                            _soundReferenceCode(ambiance, allocate),
-                      )
+                      ..body = _soundReferenceCode(allocate, ambiance)
                       ..lambda = true
                       ..returns = soundReferenceRefer
                       ..type = MethodType.getter;
@@ -342,10 +348,10 @@ class EditorCodeGenerator {
                       'The point where this object will start out in the room.'
                           .asDocComment,
                     )
-                    ..body = Code.scope((final allocate) {
-                      final point = allocate(refer('Point', 'dart:math'));
-                      return 'const $point(${object.x}, ${object.y})';
-                    })
+                    ..body = Code.scope(
+                      (final allocate) =>
+                          'const ${allocate(point)}(${object.x}, ${object.y})',
+                    )
                     ..lambda = true
                     ..returns = TypeReference((final t) {
                       t
@@ -375,10 +381,7 @@ class EditorCodeGenerator {
                       ..name = 'ambiance'
                       ..annotations.add(nonVirtualAnnotation)
                       ..docs.add('The ambiance for this object.'.asDocComment)
-                      ..body = Code.scope(
-                        (final allocate) =>
-                            _soundReferenceCode(ambiance, allocate),
-                      )
+                      ..body = _soundReferenceCode(allocate, ambiance)
                       ..lambda = true
                       ..returns = soundReferenceRefer
                       ..type = MethodType.getter;
@@ -453,7 +456,6 @@ class EditorCodeGenerator {
           ..body.addAll(surfaceClasses)
           ..body.addAll(objectClasses);
       });
-      final emitter = DartEmitter.scoped();
       final dart = lib.accept(emitter);
       if (!codeDirectory.existsSync()) {
         codeDirectory.createSync(recursive: true);
@@ -509,124 +511,127 @@ class EditorCodeGenerator {
   /// Returns `true` if the build succeeds.
   bool writeEngineCode() {
     final string = refer('String');
-    final roomCodeClasses = _writeRooms().toList();
-    if (roomCodeClasses.length != rooms.length) {
-      return false;
-    }
-    _writeRoomExports(
-      roomCodeClasses.map((final roomCode) => roomCode.filename),
-    );
-    final loadedRoomEvents = refer('LoadedRoomEvents', angstromEditorPackage);
-    final roomEventsMap = TypeReference((final t) {
-      t
-        ..symbol = 'Map'
-        ..types.addAll([string, loadedRoomEvents]);
-    });
-    final assetLoadingEngine = refer(
-      'AssetLoadingAngstromEngine',
-      angstromEditorPackage,
-    );
     final dartFile = File(engineCodePath);
     try {
-      final engineClass = Class((final c) {
-        c
-          ..name = engineClassName
-          ..docs.addAll([
-            'The custom engine for your game.'.asDocComment,
-            '///',
-            // ignore: lines_longer_than_80_chars
-            'This class will ensure that your custom callbacks can be loaded in a'
-                .asDocComment,
-            'completely type safe manner.'.asDocComment,
-          ])
-          ..extend = assetLoadingEngine
-          ..constructors.add(
-            Constructor((final c) {
-              c
-                ..docs.add('Create an instance.'.asDocComment)
-                ..optionalParameters.addAll([
-                  ...['playerCharacter', 'assetBundle'].map(
-                    (final name) => Parameter((final p) {
-                      p
-                        ..name = name
-                        ..named = true
-                        ..toSuper = true
-                        ..required = true;
-                    }),
-                  ),
-                  ...roomCodeClasses.map((final roomCode) {
-                    final room = roomCode.room;
-                    return Parameter((final p) {
-                      p
-                        ..name = room.getterName
-                        ..named = true
-                        ..required = true
-                        ..toThis = true;
-                    });
+      final emitter = DartEmitter.scoped();
+      final roomCodeClasses = _writeRooms().toList();
+      if (roomCodeClasses.length != rooms.length) {
+        throw StateError(
+          // ignore: lines_longer_than_80_chars
+          'Expected to have written ${rooms.length}. Only ${roomCodeClasses.length} have been written.',
+        );
+      }
+      _writeRoomExports(
+        roomCodeClasses.map((final roomCode) => roomCode.filename),
+      );
+      final lib = Library((final lib) {
+        lib.body.add(
+          Class((final c) {
+            final loadedRoomEvents = refer(
+              'LoadedRoomEvents',
+              angstromEditorPackage,
+            );
+            final roomEventsMap = TypeReference((final t) {
+              t
+                ..symbol = 'Map'
+                ..types.addAll([string, loadedRoomEvents]);
+            });
+            final assetLoadingEngine = refer(
+              'AssetLoadingAngstromEngine',
+              angstromEditorPackage,
+            );
+            c
+              ..name = engineClassName
+              ..docs.addAll([
+                'The custom engine for your game.'.asDocComment,
+                '///',
+                // ignore: lines_longer_than_80_chars
+                'This class will ensure that your custom callbacks can be loaded in a'
+                    .asDocComment,
+                'completely type safe manner.'.asDocComment,
+              ])
+              ..extend = assetLoadingEngine
+              ..constructors.add(
+                Constructor((final c) {
+                  c
+                    ..docs.add('Create an instance.'.asDocComment)
+                    ..optionalParameters.addAll([
+                      ...['playerCharacter', 'assetBundle'].map(
+                        (final name) => Parameter((final p) {
+                          p
+                            ..name = name
+                            ..named = true
+                            ..toSuper = true
+                            ..required = true;
+                        }),
+                      ),
+                      ...roomCodeClasses.map((final roomCode) {
+                        final room = roomCode.room;
+                        return Parameter((final p) {
+                          p
+                            ..name = room.getterName
+                            ..named = true
+                            ..required = true
+                            ..toThis = true;
+                        });
+                      }),
+                      ...engineCommands.map(
+                        (final command) => Parameter((final p) {
+                          p
+                            ..name = command.getterName
+                            ..named = true
+                            ..required = true
+                            ..toThis = true;
+                        }),
+                      ),
+                      ...['musicFadeIn', 'musicFadeOut'].map(
+                        (final name) => Parameter((final p) {
+                          p
+                            ..name = name
+                            ..named = true
+                            ..toSuper = true;
+                        }),
+                      ),
+                    ]);
+                }),
+              )
+              ..fields.addAll([
+                ...roomCodeClasses.map((final roomCode) {
+                  final room = roomCode.room;
+                  final roomClass = roomCode.roomClass;
+                  return Field((final f) {
+                    f
+                      ..name = room.getterName
+                      ..docs.add(
+                        // ignore: lines_longer_than_80_chars
+                        'Events for ${room.editorRoom.name}. Used by [buildRoom].'
+                            .asDocComment,
+                      )
+                      ..modifier = FieldModifier.final$
+                      ..type = refer(
+                        roomClass.name,
+                        [
+                          path.basename(codeDirectory.path),
+                          roomExportsFilename,
+                        ].join('/'),
+                      );
+                  });
+                }),
+                ...engineCommands.map(
+                  (final command) => Field((final f) {
+                    f
+                      ..name = command.getterName
+                      ..docs.add(command.comment.asDocComment)
+                      ..modifier = FieldModifier.final$
+                      ..type = refer(
+                        'EngineCommandHandler',
+                        angstromEditorPackage,
+                      );
                   }),
-                  ...engineCommands.map(
-                    (final command) => Parameter((final p) {
-                      p
-                        ..name = command.getterName
-                        ..named = true
-                        ..required = true
-                        ..toThis = true;
-                    }),
-                  ),
-                  ...['musicFadeIn', 'musicFadeOut'].map(
-                    (final name) => Parameter((final p) {
-                      p
-                        ..name = name
-                        ..named = true
-                        ..toSuper = true;
-                    }),
-                  ),
-                ]);
-            }),
-          )
-          ..fields.addAll([
-            ...roomCodeClasses.map((final roomCode) {
-              final room = roomCode.room;
-              final roomClass = roomCode.roomClass;
-              return Field((final f) {
-                f
-                  ..name = room.getterName
-                  ..docs.add(
-                    'Events for ${room.editorRoom.name}. Used by [buildRoom].'
-                        .asDocComment,
-                  )
-                  ..modifier = FieldModifier.final$
-                  ..type = refer(
-                    roomClass.name,
-                    [
-                      path.basename(codeDirectory.path),
-                      roomExportsFilename,
-                    ].join('/'),
-                  );
-              });
-            }),
-            ...engineCommands.map(
-              (final command) => Field((final f) {
-                f
-                  ..name = command.getterName
-                  ..docs.add(command.comment.asDocComment)
-                  ..modifier = FieldModifier.final$
-                  ..type = refer('EngineCommandHandler', angstromEditorPackage);
-              }),
-            ),
-          ])
-          ..methods.add(
-            Method((final m) {
-              m
-                ..annotations.add(refer('override'))
-                ..name = 'roomEvents'
-                ..docs.add(
-                  'Provides the properties created by code gen.'.asDocComment,
-                )
-                ..returns = roomEventsMap
-                ..lambda = true
-                ..type = MethodType.getter
-                ..body = Code.scope((final allocate) {
+                ),
+              ])
+              ..methods.add(
+                Method((final m) {
                   final buffer = StringBuffer()..writeln('{');
                   for (var i = 0; i < roomCodeClasses.length; i++) {
                     final roomCode = roomCodeClasses[i];
@@ -638,6 +643,7 @@ class EditorCodeGenerator {
                       0,
                       roomClass.name.length - base.length,
                     );
+                    final allocate = emitter.allocator.allocate;
                     buffer
                       ..writeln('${editorRoom.name} events.'.asInlineComment)
                       ..writeln('${literalString(roomId)}: ')
@@ -702,15 +708,22 @@ class EditorCodeGenerator {
                     buffer.writeln('),');
                   }
                   buffer.writeln('}');
-                  return buffer.toString();
-                });
-            }),
-          );
+                  m
+                    ..annotations.add(refer('override'))
+                    ..name = 'roomEvents'
+                    ..docs.add(
+                      'Provides the properties created by code gen.'
+                          .asDocComment,
+                    )
+                    ..returns = roomEventsMap
+                    ..lambda = true
+                    ..type = MethodType.getter
+                    ..body = Code(buffer.toString());
+                }),
+              );
+          }),
+        );
       });
-      final lib = Library((final lib) {
-        lib.body.add(engineClass);
-      });
-      final emitter = DartEmitter.scoped();
       final dart = lib.accept(emitter);
       if (!dartFile.parent.existsSync()) {
         dartFile.parent.createSync(recursive: true);
