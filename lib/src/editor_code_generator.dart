@@ -17,6 +17,9 @@ final nonVirtualAnnotation = refer('nonVirtual', 'package:meta/meta.dart');
 /// The name of the Angstrom package.
 const angstromPackage = 'package:angstrom/angstrom.dart';
 
+/// The name of the angstrom_editor package.
+const angstromEditorPackage = 'package:angstrom_editor/angstrom_editor.dart';
+
 /// The type of an allocate function from `code_builder`.
 typedef Allocate = String Function(Reference);
 
@@ -95,7 +98,7 @@ class EditorCodeGenerator {
 
   /// Returns the code for the given [command].
   Code _editorEventCommandCode({
-    required final AngstromEventType eventType,
+    required final EngineCommandCaller caller,
     required final EditorEventCommand command,
   }) => Code.scope((final allocate) {
     final buffer = StringBuffer();
@@ -111,12 +114,13 @@ class EditorCodeGenerator {
         ..writeln(',')
         ..writeln(');');
     }
+    final eventType = caller.eventType;
     if (command.hasHandler) {
       buffer.writeln('${eventType.name}(engine);');
     }
     final door = command.door;
     if (door != null) {
-      final targetRoomId = door.targetRoomId.replaceAll(r'\', '/');
+      final targetRoomId = door.targetRoomId;
       buffer
         ..writeln('${allocate(refer('Door', angstromPackage))}(')
         ..write('coordinates: ${allocate(refer('Point', 'dart:math'))}(')
@@ -131,6 +135,41 @@ class EditorCodeGenerator {
     }
     final engineCommandId = command.engineCommandId;
     if (engineCommandId != null) {
+      final engineCommandCaller = refer(
+        'EngineCommandCaller',
+        angstromEditorPackage,
+      );
+      buffer.write('final caller = ${allocate(engineCommandCaller)}.');
+      final angstromEventType = refer('AngstromEventType', angstromPackage);
+      switch (caller) {
+        case RoomEngineCommandCaller():
+          buffer
+            ..writeln('room(')
+            ..writeln(
+              'eventType: ${allocate(angstromEventType)}.${eventType.name},',
+            )
+            ..writeln('roomId: ${literalString(caller.roomId)},');
+          break;
+        case SurfaceEngineCommandCaller():
+          buffer
+            ..writeln('object(')
+            ..writeln(
+              'eventType: ${allocate(angstromEventType)}.${eventType.name},',
+            )
+            ..writeln('roomId: ${literalString(caller.roomId)},')
+            ..writeln('surfaceId: ${literalString(caller.surfaceId)},');
+          break;
+        case ObjectEngineCommandCaller():
+          buffer
+            ..writeln('object(')
+            ..writeln(
+              'eventType: ${allocate(angstromEventType)}.${eventType.name},',
+            )
+            ..writeln('roomId: ${literalString(caller.roomId)},')
+            ..writeln('objectId: ${literalString(caller.objectId)},');
+          break;
+      }
+      buffer.writeln(');');
       final engineCommand = engineCommands.firstWhere(
         (final c) => c.id == engineCommandId,
       );
@@ -142,28 +181,26 @@ class EditorCodeGenerator {
               .replaceAll(r'\', '/'),
         ),
       );
-      buffer.writeln(
-        '(engine as $customEngine).${engineCommand.getterName}(engine);',
-      );
+      buffer
+        ..writeln('(engine as $customEngine).${engineCommand.getterName}(')
+        ..writeln('caller, engine);');
     }
     return buffer.toString();
   });
 
   /// Returns an [Iterable] of [Method]s to be added to a class.
   Iterable<Method> _commandMethods({
-    required final AngstromEventType eventType,
+    required final EngineCommandCaller caller,
     required final EditorEventCommand command,
   }) sync* {
+    final eventType = caller.eventType;
     yield Method((final m) {
       m
         ..name = '${eventType.name}$commandSuffix'
         ..docs.add(command.comment.asDocComment)
         ..requiredParameters.add(engineParameter)
         ..returns = refer('void')
-        ..body = _editorEventCommandCode(
-          eventType: eventType,
-          command: command,
-        );
+        ..body = _editorEventCommandCode(caller: caller, command: command);
     });
     if (command.hasHandler) {
       yield Method((final m) {
@@ -193,8 +230,13 @@ class EditorCodeGenerator {
               ..docs.add('Events for ${surface.name}.'.asDocComment);
             for (final MapEntry(key: eventType, value: command)
                 in surface.eventCommands.entries) {
+              final caller = EngineCommandCaller.surface(
+                eventType: eventType,
+                roomId: room.id,
+                surfaceId: surface.id,
+              );
               c.methods.addAll(
-                _commandMethods(eventType: eventType, command: command),
+                _commandMethods(caller: caller, command: command),
               );
             }
             c
@@ -344,8 +386,13 @@ class EditorCodeGenerator {
               ]);
             for (final MapEntry(key: eventType, value: command)
                 in object.eventCommands.entries) {
+              final caller = EngineCommandCaller.object(
+                eventType: eventType,
+                roomId: room.id,
+                objectId: object.id,
+              );
               c.methods.addAll(
-                _commandMethods(eventType: eventType, command: command),
+                _commandMethods(caller: caller, command: command),
               );
             }
           }),
@@ -391,7 +438,13 @@ class EditorCodeGenerator {
               }(),
             for (final MapEntry(key: eventType, value: command)
                 in editorRoom.eventCommands.entries)
-              ..._commandMethods(eventType: eventType, command: command),
+              ..._commandMethods(
+                caller: EngineCommandCaller.room(
+                  eventType: eventType,
+                  roomId: room.id,
+                ),
+                command: command,
+              ),
           ]),
       );
       final lib = Library((final lib) {
@@ -463,8 +516,6 @@ class EditorCodeGenerator {
     _writeRoomExports(
       roomCodeClasses.map((final roomCode) => roomCode.filename),
     );
-    const angstromEditorPackage =
-        'package:angstrom_editor/angstrom_editor.dart';
     final loadedRoomEvents = refer('LoadedRoomEvents', angstromEditorPackage);
     final roomEventsMap = TypeReference((final t) {
       t
@@ -581,7 +632,7 @@ class EditorCodeGenerator {
                     final roomCode = roomCodeClasses[i];
                     final room = roomCode.room;
                     final editorRoom = room.editorRoom;
-                    final roomId = room.id.replaceAll(r'\', '/');
+                    final roomId = room.id;
                     final roomClass = roomCode.roomClass;
                     final roomGetterName = roomClass.name.camelCase.substring(
                       0,

@@ -3,16 +3,16 @@ import 'package:angstrom_editor/angstrom_editor.dart';
 /// The base class for all [EngineCommand] callers.
 sealed class EngineCommandCaller {
   /// Create an instance.
-  const EngineCommandCaller({required this.eventType});
+  const EngineCommandCaller._({required this.eventType});
 
   /// Create an instance from [roomId].
-  static RoomEngineCommandCaller roomId({
+  static RoomEngineCommandCaller room({
     required final AngstromEventType eventType,
     required final String roomId,
   }) => RoomEngineCommandCaller(eventType: eventType, roomId: roomId);
 
   /// Create an instance from [surfaceId].
-  static SurfaceEngineCommandCaller surfaceId({
+  static SurfaceEngineCommandCaller surface({
     required final AngstromEventType eventType,
     required final String roomId,
     required final String surfaceId,
@@ -23,7 +23,7 @@ sealed class EngineCommandCaller {
   );
 
   /// Create an instance from [objectId].
-  static ObjectEngineCommandCaller objectId({
+  static ObjectEngineCommandCaller object({
     required final AngstromEventType eventType,
     required final String roomId,
     required final String objectId,
@@ -47,7 +47,7 @@ class RoomEngineCommandCaller extends EngineCommandCaller {
   const RoomEngineCommandCaller({
     required super.eventType,
     required this.roomId,
-  });
+  }) : super._();
 
   /// The ID of the room which called the command.
   final String roomId;
@@ -65,7 +65,7 @@ class SurfaceEngineCommandCaller extends EngineCommandCaller {
     required super.eventType,
     required this.roomId,
     required this.surfaceId,
-  });
+  }) : super._();
 
   /// The ID of the room which contains the surface.
   final String roomId;
@@ -87,7 +87,7 @@ class ObjectEngineCommandCaller extends EngineCommandCaller {
     required super.eventType,
     required this.roomId,
     required this.objectId,
-  });
+  }) : super._();
 
   /// The ID of the room which contains the object.
   final String roomId;
