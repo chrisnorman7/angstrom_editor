@@ -23,13 +23,17 @@ void defaultCallEngineCommandTest(
   final eventType = caller.eventType.name;
   switch (caller) {
     case RoomEngineCommandCaller():
-      engine.speak('Room ${caller.room.editorRoom.name}: $eventType.');
+      engine.speak('Room #${caller.roomId}: $eventType.');
       break;
     case SurfaceEngineCommandCaller():
-      engine.speak('Surface ${caller.surface.name}: $eventType.');
+      engine.speak(
+        'Surface #${caller.surfaceId} of room #${caller.roomId}: $eventType.',
+      );
       break;
     case ObjectEngineCommandCaller():
-      engine.speak('Object ${caller.object.name}: $eventType.');
+      engine.speak(
+        'Object #${caller.objectId} of room #${caller.roomId}: $eventType.',
+      );
       break;
   }
 }

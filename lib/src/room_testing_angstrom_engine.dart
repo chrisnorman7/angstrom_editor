@@ -68,7 +68,8 @@ class RoomTestingAngstromEngine extends AngstromEngine {
                 return runCommand(
                   caller: SurfaceEngineCommandCaller(
                     eventType: eventType,
-                    surface: surface,
+                    roomId: room.id,
+                    surfaceId: surface.id,
                   ),
                   command: surface.eventCommands[eventType],
                 )(engine);
@@ -78,7 +79,8 @@ class RoomTestingAngstromEngine extends AngstromEngine {
                 return runCommand(
                   caller: SurfaceEngineCommandCaller(
                     eventType: eventType,
-                    surface: surface,
+                    roomId: room.id,
+                    surfaceId: surface.id,
                   ),
                   command: surface.eventCommands[eventType],
                 )(engine);
@@ -88,7 +90,8 @@ class RoomTestingAngstromEngine extends AngstromEngine {
                 return runCommand(
                   caller: SurfaceEngineCommandCaller(
                     eventType: eventType,
-                    surface: surface,
+                    roomId: room.id,
+                    surfaceId: surface.id,
                   ),
                   command: surface.eventCommands[eventType],
                 )(engine);
@@ -103,7 +106,8 @@ class RoomTestingAngstromEngine extends AngstromEngine {
                 return runCommand(
                   caller: ObjectEngineCommandCaller(
                     eventType: eventType,
-                    object: object,
+                    roomId: room.id,
+                    objectId: object.id,
                   ),
                   command: object.eventCommands[eventType],
                 )(engine);
@@ -113,7 +117,8 @@ class RoomTestingAngstromEngine extends AngstromEngine {
                 return runCommand(
                   caller: ObjectEngineCommandCaller(
                     eventType: eventType,
-                    object: object,
+                    roomId: room.id,
+                    objectId: object.id,
                   ),
                   command: object.eventCommands[eventType],
                 )(engine);
@@ -123,7 +128,8 @@ class RoomTestingAngstromEngine extends AngstromEngine {
                 return runCommand(
                   caller: ObjectEngineCommandCaller(
                     eventType: eventType,
-                    object: object,
+                    roomId: room.id,
+                    objectId: object.id,
                   ),
                   command: object.eventCommands[eventType],
                 )(engine);
@@ -133,14 +139,20 @@ class RoomTestingAngstromEngine extends AngstromEngine {
         onEnter: (final engine) {
           const eventType = AngstromEventType.onEnter;
           return runCommand(
-            caller: RoomEngineCommandCaller(eventType: eventType, room: room),
+            caller: RoomEngineCommandCaller(
+              eventType: eventType,
+              roomId: room.id,
+            ),
             command: editorRoom.eventCommands[eventType],
           )(engine);
         },
         onLeave: (final engine) {
           const eventType = AngstromEventType.onLeave;
           return runCommand(
-            caller: RoomEngineCommandCaller(eventType: eventType, room: room),
+            caller: RoomEngineCommandCaller(
+              eventType: eventType,
+              roomId: room.id,
+            ),
             command: editorRoom.eventCommands[eventType],
           )(engine);
         },
