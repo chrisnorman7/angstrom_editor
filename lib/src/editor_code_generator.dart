@@ -87,9 +87,7 @@ class EditorCodeGenerator {
     final Allocate allocate,
     final SoundReference reference,
   ) {
-    final soundReference = allocate(
-      refer('SoundReference', 'package:angstrom/angstrom.dart'),
-    );
+    final soundReference = allocate(refer('SoundReference', angstromPackage));
     final buffer = StringBuffer()
       ..writeln('const $soundReference(')
       ..writeln('path: ${literalString(reference.path)},');
@@ -220,7 +218,6 @@ class EditorCodeGenerator {
         m
           ..name = eventType.name
           ..docs.add(command.comment.asDocComment)
-          ..name = eventType.name
           ..requiredParameters.add(engineParameter)
           ..returns = refer('void');
       });
