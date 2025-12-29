@@ -274,6 +274,53 @@ class AngstromEditorState extends State<AngstromEditor> {
                   },
                 ).getActions(context),
                 PerformableAction(
+                  name: 'Test room',
+                  activator: testShortcut,
+                  invoke: () {
+                    final engine = RoomTestingAngstromEngine(
+                      startRoom: room,
+                      rooms: rooms,
+                    );
+                    context.pushWidgetBuilder(
+                      (_) => Cancel(
+                        child: GameScreen(
+                          engine: engine,
+                          title: 'Test ${editorRoom.name}',
+                          getSound: widget.getSound ?? defaultGetSound,
+                          gameShortcutsBuilder:
+                              (final context, final shortcuts) {
+                                shortcuts.addAll([
+                                  GameShortcut(
+                                    title: 'Teleport',
+                                    shortcut: GameShortcutsShortcut.keyT,
+                                    onStart: (final innerContext) {
+                                      innerContext.pushWidgetBuilder(
+                                        (_) => SelectRoomScreen(
+                                          rooms: rooms,
+                                          onChange: (final value) =>
+                                              engine.teleportPlayer(
+                                                room.id,
+                                                room
+                                                    .editorRoom
+                                                    .surfaces
+                                                    .first
+                                                    .points
+                                                    .first
+                                                    .coordinates,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ]);
+                                return shortcuts;
+                              },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                PerformableAction(
                   name: 'Delete',
                   activator: deleteShortcut,
                   invoke: () {

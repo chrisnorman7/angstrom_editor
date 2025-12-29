@@ -35,6 +35,7 @@ export 'src/screens/room_editor.dart';
 export 'src/screens/select_door_target_screen.dart';
 export 'src/screens/select_engine_command_screen.dart';
 export 'src/screens/select_object_screen.dart';
+export 'src/screens/select_room_screen.dart';
 export 'src/screens/select_sound_screen.dart';
 export 'src/shortcuts.dart';
 export 'src/sound_reference_volume_actions.dart';
