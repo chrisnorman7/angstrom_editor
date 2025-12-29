@@ -14,6 +14,26 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
+/// The default function for calling engine commands in the test environment.
+void defaultCallEngineCommandTest(
+  final EngineCommand command,
+  final EngineCommandCaller caller,
+  final RoomTestingAngstromEngine engine,
+) {
+  final eventType = caller.eventType.name;
+  switch (caller) {
+    case RoomEngineCommandCaller():
+      engine.speak('Room ${caller.room.editorRoom.name}: $eventType.');
+      break;
+    case SurfaceEngineCommandCaller():
+      engine.speak('Surface ${caller.surface.name}: $eventType.');
+      break;
+    case ObjectEngineCommandCaller():
+      engine.speak('Object ${caller.object.name}: $eventType.');
+      break;
+  }
+}
+
 /// The main editor screen.
 class AngstromEditor extends StatefulWidget {
   /// Create an instance.
@@ -37,6 +57,7 @@ class AngstromEditor extends StatefulWidget {
     this.volumeChangeAmount = 0.1,
     this.buildCompleteSound,
     this.buildFailSound,
+    this.callEngineCommand = defaultCallEngineCommandTest,
     super.key,
   }) : assert(
          footsteps.length > 0,
@@ -108,6 +129,9 @@ class AngstromEditor extends StatefulWidget {
 
   /// The sound to play when code generation fails.
   final Sound? buildFailSound;
+
+  /// The function for calling [EngineCommand]s in the test environment.
+  final CallEngineCommandTest callEngineCommand;
 
   /// Create state for this widget.
   @override
@@ -181,6 +205,7 @@ class AngstromEditorState extends State<AngstromEditor> {
             getExamineObjectOrdering: widget.getExamineObjectOrdering,
             onNoRoomObjects: widget.onNoRoomObjects,
             engineCommands: engineCommands,
+            callEngineCommand: widget.callEngineCommand,
           );
           final musicReference = editorRoom.music;
           final sound = musicReference == null

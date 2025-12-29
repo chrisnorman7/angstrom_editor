@@ -11,6 +11,7 @@ export 'src/editor_context.dart';
 export 'src/editor_engine.dart';
 export 'src/editor_room_object_events.dart';
 export 'src/editor_room_surface_events.dart';
+export 'src/engine_command_caller.dart';
 export 'src/event_commands_performable_actions.dart';
 export 'src/extensions.dart';
 export 'src/footsteps_sounds.dart';

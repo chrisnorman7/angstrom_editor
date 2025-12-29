@@ -29,6 +29,8 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
     engine = RoomTestingAngstromEngine(
       startRoom: widget.editorContext.room,
       rooms: rooms,
+      engineCommands: widget.editorContext.engineCommands,
+      callEngineCommand: widget.editorContext.callEngineCommand,
     );
   }
 
@@ -94,6 +96,7 @@ class RoomTestingScreenState extends State<RoomTestingScreen> {
                       widget.editorContext.getExamineObjectOrdering,
                   onNoRoomObjects: widget.editorContext.onNoRoomObjects,
                   engineCommands: widget.editorContext.engineCommands,
+                  callEngineCommand: widget.editorContext.callEngineCommand,
                 );
                 innerContext.pushWidgetBuilder(
                   (_) => SelectObjectScreen(

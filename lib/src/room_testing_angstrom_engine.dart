@@ -3,12 +3,22 @@ import 'dart:async';
 import 'package:angstrom/angstrom.dart';
 import 'package:angstrom_editor/angstrom_editor.dart';
 
+/// The type of a function for calling test engine commands.
+typedef CallEngineCommandTest =
+    void Function(
+      EngineCommand command,
+      EngineCommandCaller caller,
+      RoomTestingAngstromEngine engine,
+    );
+
 /// An engine for testing [rooms].
 class RoomTestingAngstromEngine extends AngstromEngine {
   /// Create an instance.
   RoomTestingAngstromEngine({
     required this.startRoom,
     required this.rooms,
+    required this.engineCommands,
+    required this.callEngineCommand,
     super.musicFadeIn,
     super.musicFadeOut,
   }) : super(
@@ -31,6 +41,12 @@ class RoomTestingAngstromEngine extends AngstromEngine {
   /// Get the current room.
   LoadedRoom get loadedRoom => rooms.firstWhere((final r) => r.id == room.id);
 
+  /// The engine commands.
+  final List<EngineCommand> engineCommands;
+
+  /// The function to call whenever an engine command is called.
+  final CallEngineCommandTest callEngineCommand;
+
   /// Build a room.
   @override
   FutureOr<LoadedRoom> buildRoom(final String id) {
@@ -50,21 +66,30 @@ class RoomTestingAngstromEngine extends AngstromEngine {
               onEnter: (final engine) {
                 const eventType = AngstromEventType.onEnter;
                 return runCommand(
-                  eventType: eventType,
+                  caller: SurfaceEngineCommandCaller(
+                    eventType: eventType,
+                    surface: surface,
+                  ),
                   command: surface.eventCommands[eventType],
                 )(engine);
               },
               onExit: (final engine) {
                 const eventType = AngstromEventType.onExit;
                 return runCommand(
-                  eventType: eventType,
+                  caller: SurfaceEngineCommandCaller(
+                    eventType: eventType,
+                    surface: surface,
+                  ),
                   command: surface.eventCommands[eventType],
                 )(engine);
               },
               onMove: (final engine) {
                 const eventType = AngstromEventType.onMove;
                 return runCommand(
-                  eventType: eventType,
+                  caller: SurfaceEngineCommandCaller(
+                    eventType: eventType,
+                    surface: surface,
+                  ),
                   command: surface.eventCommands[eventType],
                 )(engine);
               },
@@ -76,21 +101,30 @@ class RoomTestingAngstromEngine extends AngstromEngine {
               onActivate: (final engine) {
                 const eventType = AngstromEventType.onActivate;
                 return runCommand(
-                  eventType: eventType,
+                  caller: ObjectEngineCommandCaller(
+                    eventType: eventType,
+                    object: object,
+                  ),
                   command: object.eventCommands[eventType],
                 )(engine);
               },
               onApproach: (final engine) {
                 const eventType = AngstromEventType.onApproach;
                 return runCommand(
-                  eventType: eventType,
+                  caller: ObjectEngineCommandCaller(
+                    eventType: eventType,
+                    object: object,
+                  ),
                   command: object.eventCommands[eventType],
                 )(engine);
               },
               onLeave: (final engine) {
                 const eventType = AngstromEventType.onLeave;
                 return runCommand(
-                  eventType: eventType,
+                  caller: ObjectEngineCommandCaller(
+                    eventType: eventType,
+                    object: object,
+                  ),
                   command: object.eventCommands[eventType],
                 )(engine);
               },
@@ -99,14 +133,14 @@ class RoomTestingAngstromEngine extends AngstromEngine {
         onEnter: (final engine) {
           const eventType = AngstromEventType.onEnter;
           return runCommand(
-            eventType: eventType,
+            caller: RoomEngineCommandCaller(eventType: eventType, room: room),
             command: editorRoom.eventCommands[eventType],
           )(engine);
         },
         onLeave: (final engine) {
           const eventType = AngstromEventType.onLeave;
           return runCommand(
-            eventType: eventType,
+            caller: RoomEngineCommandCaller(eventType: eventType, room: room),
             command: editorRoom.eventCommands[eventType],
           )(engine);
         },
@@ -114,9 +148,9 @@ class RoomTestingAngstromEngine extends AngstromEngine {
     );
   }
 
-  /// Run the given [command] as the given [eventType].
+  /// Run the given [command] as the given [caller].
   AngstromCallback runCommand({
-    required final AngstromEventType eventType,
+    required final EngineCommandCaller caller,
     required final EditorEventCommand? command,
   }) => (final engine) {
     final text = command?.spokenText;
@@ -135,6 +169,23 @@ class RoomTestingAngstromEngine extends AngstromEngine {
         stopPlayer: door.stopPlayer,
         useSound: door.useSound,
       ).onActivate(engine);
+    }
+    final engineCommandId = command?.engineCommandId;
+    if (engineCommandId != null) {
+      var engineCommandCalled = false;
+      for (final engineCommand in engineCommands) {
+        if (engineCommand.id == engineCommandId) {
+          callEngineCommand(engineCommand, caller, this);
+          engineCommandCalled = true;
+          break;
+        }
+      }
+      if (!engineCommandCalled) {
+        throw UnimplementedError(
+          // ignore: lines_longer_than_80_chars
+          'There is no engine command with the ID $engineCommandId. Caller: $caller.',
+        );
+      }
     }
   };
 }

@@ -61,6 +61,7 @@ class EditDoorScreenState extends State<EditDoorScreen> {
       getExamineObjectOrdering: currentEditorContext.getExamineObjectOrdering,
       onNoRoomObjects: currentEditorContext.onNoRoomObjects,
       engineCommands: widget.editorContext.engineCommands,
+      callEngineCommand: widget.editorContext.callEngineCommand,
     );
     final objects = [for (final room in rooms) ...room.editorRoom.objects];
     final object = objects.firstWhere((final o) => o.id == door.targetObjectId);

@@ -22,6 +22,7 @@ class EditorContext {
     required this.getExamineObjectOrdering,
     required this.onNoRoomObjects,
     required this.engineCommands,
+    required this.callEngineCommand,
   });
 
   /// The room to edit.
@@ -69,6 +70,9 @@ class EditorContext {
 
   /// The engine commands which have been created.
   final List<EngineCommand> engineCommands;
+
+  /// The command for calling engine commands in the test environment.
+  final CallEngineCommandTest callEngineCommand;
 
   /// Save [room].
   void save() {

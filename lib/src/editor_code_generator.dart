@@ -560,11 +560,7 @@ class EditorCodeGenerator {
                   ..name = command.getterName
                   ..docs.add(command.comment.asDocComment)
                   ..modifier = FieldModifier.final$
-                  ..type = FunctionType((final f) {
-                    f
-                      ..returnType = refer('void')
-                      ..requiredParameters.add(engineRef);
-                  });
+                  ..type = refer('EngineCommandHandler', angstromEditorPackage);
               }),
             ),
           ])
