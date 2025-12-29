@@ -12,8 +12,8 @@ class AssetLoadingAngstromEngine extends AngstromEngine {
   AssetLoadingAngstromEngine({
     required super.playerCharacter,
     required this.assetBundle,
-    super.musicFadeIn = const Duration(milliseconds: 500),
-    super.musicFadeOut = const Duration(seconds: 3),
+    super.musicFadeIn,
+    super.musicFadeOut,
     this.roomEvents = const {},
   });
 
