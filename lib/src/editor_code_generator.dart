@@ -524,7 +524,6 @@ class EditorCodeGenerator {
   ///
   /// Returns `true` if the build succeeds.
   bool writeEngineCode() {
-    final string = refer('String');
     final dartFile = File(engineCodePath);
     try {
       final emitter = DartEmitter.scoped();
