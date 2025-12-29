@@ -23,7 +23,7 @@ class LoadedRoom extends Room {
 
   /// The ID of this room.
   @override
-  String get id => path;
+  String get id => path.replaceAll(r'\', '/');
 
   /// The music to play in this room.
   @override
