@@ -32,6 +32,7 @@ export 'src/screens/edit_volume_screen.dart';
 export 'src/screens/engine_commands_screen.dart';
 export 'src/screens/go_to_coordinates_screen.dart';
 export 'src/screens/room_editor.dart';
+export 'src/screens/room_testing_screen.dart';
 export 'src/screens/select_door_target_screen.dart';
 export 'src/screens/select_engine_command_screen.dart';
 export 'src/screens/select_object_screen.dart';

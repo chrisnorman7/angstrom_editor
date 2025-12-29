@@ -44,6 +44,8 @@ class SelectRoomScreen extends StatelessWidget {
             },
           );
         },
+        itemCount: rooms.length,
+        shrinkWrap: true,
       ),
     ),
   );
