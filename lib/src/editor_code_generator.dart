@@ -102,9 +102,10 @@ class EditorCodeGenerator {
 
   /// Returns the code for the given [command].
   Code _editorEventCommandCode({
+    required final Allocate allocate,
     required final EngineCommandCaller caller,
     required final EditorEventCommand command,
-  }) => Code.scope((final allocate) {
+  }) {
     final buffer = StringBuffer();
     final speakText = command.spokenText;
     if (speakText != null) {
@@ -192,11 +193,12 @@ class EditorCodeGenerator {
         ..writeln('(engine as $customEngine).${engineCommand.getterName}(')
         ..writeln('caller, engine);');
     }
-    return buffer.toString();
-  });
+    return Code(buffer.toString());
+  }
 
   /// Returns an [Iterable] of [Method]s to be added to a class.
   Iterable<Method> _commandMethods({
+    required final Allocate allocate,
     required final EngineCommandCaller caller,
     required final EditorEventCommand command,
   }) sync* {
@@ -207,7 +209,11 @@ class EditorCodeGenerator {
         ..docs.add(command.comment.asDocComment)
         ..requiredParameters.add(engineParameter)
         ..returns = refer('void')
-        ..body = _editorEventCommandCode(caller: caller, command: command);
+        ..body = _editorEventCommandCode(
+          allocate: allocate,
+          caller: caller,
+          command: command,
+        );
     });
     if (command.hasHandler) {
       yield Method((final m) {
@@ -245,7 +251,11 @@ class EditorCodeGenerator {
                 surfaceId: surface.id,
               );
               c.methods.addAll(
-                _commandMethods(caller: caller, command: command),
+                _commandMethods(
+                  allocate: allocate,
+                  caller: caller,
+                  command: command,
+                ),
               );
             }
             c
@@ -395,7 +405,11 @@ class EditorCodeGenerator {
                 objectId: object.id,
               );
               c.methods.addAll(
-                _commandMethods(caller: caller, command: command),
+                _commandMethods(
+                  allocate: allocate,
+                  caller: caller,
+                  command: command,
+                ),
               );
             }
           }),
@@ -442,6 +456,7 @@ class EditorCodeGenerator {
             for (final MapEntry(key: eventType, value: command)
                 in editorRoom.eventCommands.entries)
               ..._commandMethods(
+                allocate: allocate,
                 caller: EngineCommandCaller.room(
                   eventType: eventType,
                   roomId: room.id,
