@@ -1,11 +1,12 @@
 # Changelog
 
-## 0.6.1
+## 0.7.0
 
 - Add the ability to copy a room ID.
 - Added the door shortcut to copy door code for room objects.
 - Handle renamed rooms more gracefully.
 - Throw `InvalidDoorException` when a door is tested with an invalid room ID.
+- Show build errors before writing code.
 
 ## 0.6.0
 

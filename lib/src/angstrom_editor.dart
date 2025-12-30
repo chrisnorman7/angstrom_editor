@@ -433,8 +433,105 @@ class AngstromEditorState extends State<AngstromEditor> {
     );
   }
 
+  /// Return any problems with [command].
+  Iterable<BuildError> _callerProblems(
+    final List<LoadedRoom> rooms,
+    final EngineCommandCaller caller,
+    final EditorEventCommand command,
+  ) sync* {
+    final soundReference = command.interfaceSound;
+    if (soundReference != null) {
+      try {
+        getSound(soundReference: soundReference, destroy: true);
+        // ignore: avoid_catches_without_on_clauses
+      } catch (e) {
+        yield BuildError(
+          severity: BuildErrorSeverity.error,
+          message: 'Failed to get sound ${soundReference.path} for $caller: $e',
+        );
+      }
+    }
+    final door = command.door;
+    if (door != null) {
+      final possibilities = rooms.where((final r) => r.id == door.targetRoomId);
+      if (possibilities.isEmpty) {
+        yield BuildError(
+          severity: BuildErrorSeverity.error,
+          message:
+              // ignore: lines_longer_than_80_chars
+              'The door for $caller expects a room with the ID ${door.targetRoomId}, but no such room was found.',
+        );
+      }
+      final room = possibilities.first;
+      final objects = room.editorRoom.objects.where(
+        (final o) => o.id == door.targetObjectId,
+      );
+      if (objects.isEmpty) {
+        yield BuildError(
+          severity: BuildErrorSeverity.warning,
+          message:
+              // ignore: lines_longer_than_80_chars
+              'The door for $caller references an object with the ID ${door.targetObjectId}, but no such object exists in the room ${room.editorRoom.name}.',
+        );
+      }
+      final object = objects.first;
+      final surfaces = room.editorRoom.surfaces.where(
+        (final s) => s.points
+            .where((final p) => p.coordinates == object.coordinates)
+            .isNotEmpty,
+      );
+      if (surfaces.isEmpty) {
+        yield BuildError(
+          severity: BuildErrorSeverity.warning,
+          message:
+              // ignore: lines_longer_than_80_chars
+              'The door for $caller leads to coordinates ${door.x}, ${door.y} in room ${room.editorRoom.name}, but there is no surface at those coordinates, so the player will be unable to move.',
+        );
+      }
+    }
+  }
+
   /// Build the code for [rooms].
   void _buildRoomsCode(final List<LoadedRoom> rooms) {
+    final messages = <BuildError>[];
+    for (final room in rooms) {
+      for (final MapEntry(key: eventType, value: command)
+          in room.editorRoom.eventCommands.entries) {
+        final caller = RoomEngineCommandCaller(
+          eventType: eventType,
+          roomId: room.id,
+        );
+        messages.addAll(_callerProblems(rooms, caller, command));
+      }
+      for (final surface in room.editorRoom.surfaces) {
+        for (final MapEntry(key: eventType, value: command)
+            in surface.eventCommands.entries) {
+          final caller = SurfaceEngineCommandCaller(
+            eventType: eventType,
+            roomId: room.id,
+            surfaceId: surface.id,
+          );
+          messages.addAll(_callerProblems(rooms, caller, command));
+        }
+      }
+      for (final object in room.editorRoom.objects) {
+        for (final MapEntry(key: eventType, value: command)
+            in object.eventCommands.entries) {
+          final caller = ObjectEngineCommandCaller(
+            eventType: eventType,
+            roomId: room.id,
+            objectId: object.id,
+          );
+          messages.addAll(_callerProblems(rooms, caller, command));
+        }
+      }
+    }
+    if (messages.isNotEmpty) {
+      context.pushWidgetBuilder(
+        (_) => BuildErrorsScreen(rooms: rooms, buildErrors: messages),
+      );
+      return;
+    }
     try {
       final editorCodeGenerator = EditorCodeGenerator(
         rooms: rooms,
