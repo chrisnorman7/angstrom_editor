@@ -175,6 +175,10 @@ class RoomTestingAngstromEngine extends AngstromEngine {
     }
     final door = command?.door;
     if (door != null) {
+      final possibilities = rooms.where((final r) => r.id == door.targetRoomId);
+      if (possibilities.isEmpty) {
+        throw InvalidRoomException(door.targetRoomId);
+      }
       Door(
         coordinates: door.coordinates,
         destinationId: door.targetRoomId,

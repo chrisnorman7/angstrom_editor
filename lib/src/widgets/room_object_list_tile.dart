@@ -148,6 +148,7 @@ class RoomObjectListTile extends StatelessWidget {
         ).getActions(context),
         PerformableAction(
           name: 'Copy door code',
+          activator: doorShortcut,
           invoke: () {
             final buffer = StringBuffer()
               ..writeln('Door(')

@@ -124,6 +124,10 @@ class EditorCodeGenerator {
     final door = command.door;
     if (door != null) {
       final targetRoomId = door.targetRoomId;
+      final possibilities = rooms.where((final r) => r.id == targetRoomId);
+      if (possibilities.isEmpty) {
+        throw InvalidRoomException(door.targetRoomId);
+      }
       buffer
         ..writeln('${allocate(refer('Door', angstromPackage))}(')
         ..write('coordinates: ${allocate(refer('Point', 'dart:math'))}(')

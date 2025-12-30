@@ -42,10 +42,35 @@ class EditDoorScreenState extends State<EditDoorScreen> {
     final currentEditorContext = widget.editorContext;
     final roomsDirectory = currentEditorContext.file.parent;
     final rooms = roomsDirectory.rooms.toList();
-    final room = rooms.firstWhere(
+    final possibilities = rooms.where(
       (final room) => room.id == door.targetRoomId,
-      orElse: () => rooms.first,
     );
+    if (possibilities.isEmpty) {
+      return SimpleScaffold(
+        title: 'Select Object',
+        body: Center(
+          child: TextButton(
+            onPressed: () => context.pushWidgetBuilder(
+              (_) => SelectDoorTargetScreen(
+                roomsDirectory: roomsDirectory,
+                onChange: (final value) {
+                  door
+                    ..targetObjectId = value.object.id
+                    ..coordinates = value.object.coordinates
+                    ..targetRoomId = value.room.id;
+                  setState(() {});
+                },
+                getSound: widget.editorContext.getSound,
+                objectId: door.targetObjectId,
+              ),
+            ),
+            autofocus: true,
+            child: const Text('Select Object'),
+          ),
+        ),
+      );
+    }
+    final room = possibilities.single;
     final editorContext = EditorContext(
       room: room,
       getSound: currentEditorContext.getSound,
@@ -94,7 +119,7 @@ class EditDoorScreenState extends State<EditDoorScreen> {
             ListTile(
               title: const Text('Target room'),
               subtitle: Text(room.editorRoom.name),
-              onTap: () => room.id.copyToClipboard(),
+              onTap: room.id.copyToClipboard,
             ),
             ListTile(
               title: const Text('Target coordinates'),

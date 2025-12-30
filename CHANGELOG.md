@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1
+
+- Add the ability to copy a room ID.
+- Added the door shortcut to copy door code for room objects.
+- Handle renamed rooms more gracefully.
+- Throw `InvalidDoorException` when a door is tested with an invalid room ID.
+
 ## 0.6.0
 
 - Add call tracing for `EngineCommand`s.

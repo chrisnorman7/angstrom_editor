@@ -8,6 +8,7 @@ import 'package:backstreets_widgets/extensions.dart';
 import 'package:backstreets_widgets/screens.dart';
 import 'package:backstreets_widgets/shortcuts.dart';
 import 'package:backstreets_widgets/widgets.dart';
+import 'package:code_builder/code_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
@@ -307,6 +308,14 @@ class AngstromEditorState extends State<AngstromEditor> {
                     context.pushWidgetBuilder(
                       (_) => RoomTestingScreen(editorContext: editorContext),
                     );
+                  },
+                ),
+                PerformableAction(
+                  name: 'Copy id',
+                  activator: copyExtraShortcut,
+                  invoke: () {
+                    final expression = literalString(room.id);
+                    return expression.toString().copyToClipboard();
                   },
                 ),
                 PerformableAction(

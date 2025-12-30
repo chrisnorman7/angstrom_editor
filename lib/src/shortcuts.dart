@@ -5,10 +5,7 @@ import 'package:flutter/services.dart';
 final renameShortcut = CrossPlatformSingleActivator(LogicalKeyboardKey.keyR);
 
 /// The copy extra information shortcut.
-final copyExtraShortcut = CrossPlatformSingleActivator(
-  LogicalKeyboardKey.keyC,
-  shift: true,
-);
+final copyExtraShortcut = CrossPlatformSingleActivator(LogicalKeyboardKey.keyC);
 
 /// The shortcut to edit or clear music.
 final editMusicShortcut = CrossPlatformSingleActivator(
