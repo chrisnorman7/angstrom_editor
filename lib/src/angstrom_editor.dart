@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:path/path.dart' as path;
+import 'package:recase/recase.dart';
 import 'package:uuid/uuid.dart';
 
 /// The default function for calling engine commands in the test environment.
@@ -236,6 +237,50 @@ class AngstromEditorState extends State<AngstromEditor> {
                           innerContext.pop();
                           editorRoom.name = value;
                           editorContext.save();
+                          final newFilename = path.join(
+                            widget.directory.path,
+                            '${value.snakeCase}.json',
+                          );
+                          final newRoomId = newFilename.replaceAll(
+                            Platform.pathSeparator,
+                            '/',
+                          );
+                          editorContext.file.renameSync(newFilename);
+                          for (final otherRoom in rooms) {
+                            final editorRoom = otherRoom.editorRoom;
+                            for (final command in [
+                              ...editorRoom.eventCommands.values,
+                              for (final surface in editorRoom.surfaces)
+                                ...surface.eventCommands.values,
+                              for (final object in editorRoom.objects)
+                                ...object.eventCommands.values,
+                            ]) {
+                              final door = command.door;
+                              if (door != null &&
+                                  door.targetRoomId == room.id) {
+                                door.targetRoomId = newRoomId;
+                                EditorContext(
+                                  room: otherRoom,
+                                  getSound: getSound,
+                                  newId: newId,
+                                  footsteps: widget.footsteps,
+                                  musicSoundPaths: widget.musicSoundPaths,
+                                  ambianceSoundPaths: widget.ambianceSoundPaths,
+                                  doorSounds: widget.doorSoundPaths,
+                                  wallAttenuation: widget.wallAttenuation,
+                                  wallFactor: widget.wallFactor,
+                                  onExamineObject: widget.onExamineObject,
+                                  getExamineObjectDistance:
+                                      widget.getExamineObjectDistance,
+                                  getExamineObjectOrdering:
+                                      widget.getExamineObjectOrdering,
+                                  onNoRoomObjects: widget.onNoRoomObjects,
+                                  engineCommands: engineCommands,
+                                  callEngineCommand: widget.callEngineCommand,
+                                ).save();
+                              }
+                            }
+                          }
                           setState(() {});
                         },
                         labelText: 'Name',

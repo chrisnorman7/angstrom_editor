@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- Room files will now be renamed when the rooms themselves are renamed.
+
 ## 0.7.0
 
 - Add the ability to copy a room ID.
