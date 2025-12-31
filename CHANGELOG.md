@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.2
+
+- Objects with no `ambiance` will not have their `ambianceMaxDistance` generated.
+- Use `const` for coordinates.
+
 ## 0.7.1
 
 - Room files will now be renamed when the rooms themselves are renamed.

@@ -130,10 +130,12 @@ class EditorCodeGenerator {
       }
       buffer
         ..writeln('${allocate(refer('Door', angstromPackage))}(')
-        ..write('coordinates: ${allocate(refer('Point', 'dart:math'))}(')
+        ..write('coordinates: const ${allocate(refer('Point', 'dart:math'))}(')
         ..write('${door.x}, ${door.y}),')
-        ..writeln('destinationId: ${literalString(targetRoomId)},')
-        ..writeln('stopPlayer: ${door.stopPlayer},');
+        ..writeln('destinationId: ${literalString(targetRoomId)},');
+      if (door.stopPlayer != false) {
+        buffer.writeln('stopPlayer: ${door.stopPlayer},');
+      }
       final useSound = door.useSound;
       if (useSound != null) {
         buffer.writeln('useSound: ${_soundReferenceCode(allocate, useSound)},');
@@ -371,21 +373,7 @@ class EditorCodeGenerator {
                     })
                     ..type = MethodType.getter;
                 }),
-                Method((final m) {
-                  m
-                    ..name = 'ambianceMaxDistance'
-                    ..annotations.add(nonVirtualAnnotation)
-                    ..docs.add(
-                      // ignore: lines_longer_than_80_chars
-                      'The max distance at which the [ambiance] will play for this object.'
-                          .asDocComment,
-                    )
-                    ..body = Code('${object.ambianceMaxDistance}')
-                    ..lambda = true
-                    ..returns = refer('int')
-                    ..type = MethodType.getter;
-                }),
-                if (ambiance != null)
+                if (ambiance != null) ...[
                   Method((final m) {
                     m
                       ..name = 'ambiance'
@@ -396,6 +384,21 @@ class EditorCodeGenerator {
                       ..returns = soundReferenceRefer
                       ..type = MethodType.getter;
                   }),
+                  Method((final m) {
+                    m
+                      ..name = 'ambianceMaxDistance'
+                      ..annotations.add(nonVirtualAnnotation)
+                      ..docs.add(
+                        // ignore: lines_longer_than_80_chars
+                        'The max distance at which the [ambiance] will play for this object.'
+                            .asDocComment,
+                      )
+                      ..body = Code('${object.ambianceMaxDistance}')
+                      ..lambda = true
+                      ..returns = refer('int')
+                      ..type = MethodType.getter;
+                  }),
+                ],
               ]);
             for (final MapEntry(key: eventType, value: command)
                 in object.eventCommands.entries) {
