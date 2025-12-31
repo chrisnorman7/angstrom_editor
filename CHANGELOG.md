@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3
+
+- Added a link to the template repository.
+
 ## 0.7.2
 
 - Objects with no `ambiance` will not have their `ambianceMaxDistance` generated.
