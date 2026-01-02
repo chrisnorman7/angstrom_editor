@@ -194,239 +194,7 @@ class AngstromEditorState extends State<AngstromEditor> {
       child = ListView.builder(
         itemBuilder: (final context, final index) {
           final room = rooms[index];
-          final editorRoom = room.editorRoom;
-          final editorContext = EditorContext(
-            room: room,
-            getSound: getSound,
-            newId: newId,
-            footsteps: widget.footsteps,
-            musicSoundPaths: widget.musicSoundPaths,
-            ambianceSoundPaths: widget.ambianceSoundPaths,
-            doorSounds: widget.doorSoundPaths,
-            wallAttenuation: widget.wallAttenuation,
-            wallFactor: widget.wallFactor,
-            onExamineObject: widget.onExamineObject,
-            getExamineObjectDistance: widget.getExamineObjectDistance,
-            getExamineObjectOrdering: widget.getExamineObjectOrdering,
-            onNoRoomObjects: widget.onNoRoomObjects,
-            engineCommands: engineCommands,
-            callEngineCommand: widget.callEngineCommand,
-          );
-          final musicReference = editorRoom.music;
-          final sound = musicReference == null
-              ? null
-              : getSound(
-                  soundReference: musicReference,
-                  destroy: false,
-                  loadMode: LoadMode.disk,
-                  looping: true,
-                );
-          return MaybePlaySoundSemantics(
-            sound: sound,
-            child: PerformableActionsListTile(
-              actions: [
-                PerformableAction(
-                  name: 'Rename',
-                  activator: renameShortcut,
-                  invoke: () {
-                    _lastId = room.id;
-                    context.pushWidgetBuilder(
-                      (final innerContext) => GetText(
-                        onDone: (final value) {
-                          innerContext.pop();
-                          editorRoom.name = value;
-                          editorContext.save();
-                          final newFilename = path.join(
-                            widget.directory.path,
-                            '${value.snakeCase}.json',
-                          );
-                          final newRoomId = newFilename.replaceAll(
-                            Platform.pathSeparator,
-                            '/',
-                          );
-                          editorContext.file.renameSync(newFilename);
-                          for (final otherRoom in rooms) {
-                            final editorRoom = otherRoom.editorRoom;
-                            for (final command in [
-                              ...editorRoom.eventCommands.values,
-                              for (final surface in editorRoom.surfaces)
-                                ...surface.eventCommands.values,
-                              for (final object in editorRoom.objects)
-                                ...object.eventCommands.values,
-                            ]) {
-                              final door = command.door;
-                              if (door != null &&
-                                  door.targetRoomId == room.id) {
-                                door.targetRoomId = newRoomId;
-                                EditorContext(
-                                  room: otherRoom,
-                                  getSound: getSound,
-                                  newId: newId,
-                                  footsteps: widget.footsteps,
-                                  musicSoundPaths: widget.musicSoundPaths,
-                                  ambianceSoundPaths: widget.ambianceSoundPaths,
-                                  doorSounds: widget.doorSoundPaths,
-                                  wallAttenuation: widget.wallAttenuation,
-                                  wallFactor: widget.wallFactor,
-                                  onExamineObject: widget.onExamineObject,
-                                  getExamineObjectDistance:
-                                      widget.getExamineObjectDistance,
-                                  getExamineObjectOrdering:
-                                      widget.getExamineObjectOrdering,
-                                  onNoRoomObjects: widget.onNoRoomObjects,
-                                  engineCommands: engineCommands,
-                                  callEngineCommand: widget.callEngineCommand,
-                                ).save();
-                              }
-                            }
-                          }
-                          setState(() {});
-                        },
-                        labelText: 'Name',
-                        text: editorRoom.name,
-                        title: 'Rename room',
-                      ),
-                    );
-                  },
-                ),
-                if (musicReference == null) ...[
-                  PerformableAction(
-                    name: 'Set music',
-                    activator: editMusicShortcut,
-                    invoke: () {
-                      _lastId = room.id;
-                      context.pushWidgetBuilder(
-                        (_) => SelectSoundScreen(
-                          soundPaths: widget.musicSoundPaths,
-                          getSound: getSound,
-                          setSound: (final value) {
-                            editorRoom.music = SoundReference(
-                              path: value,
-                              volume: musicReference?.volume ?? 0.7,
-                            );
-                            editorContext.save();
-                            setState(() {});
-                          },
-                          looping: true,
-                          soundPath: musicReference?.path,
-                          title: 'Select Music',
-                          volume: musicReference?.volume ?? 0.7,
-                        ),
-                      );
-                    },
-                  ),
-                ] else ...[
-                  ...SoundReferenceVolumeActions(
-                    soundReference: musicReference,
-                    onChange: (final value) {
-                      _lastId = room.id;
-                      editorRoom.music = value;
-                      editorContext.save();
-                      setState(() {});
-                    },
-                  ).getActions(context),
-                  PerformableAction(
-                    name: 'Remove music',
-                    activator: editMusicShortcut,
-                    invoke: () {
-                      _lastId = room.id;
-                      editorRoom.music = null;
-                      editorContext.save();
-                      setState(() {});
-                    },
-                  ),
-                ],
-                ...EventCommandsPerformableActions(
-                  editorContext: editorContext,
-                  events: [AngstromEventType.onEnter, AngstromEventType.onExit],
-                  map: editorRoom.eventCommands,
-                  save: () {
-                    editorContext.save();
-                    setState(() {});
-                  },
-                ).getActions(context),
-                PerformableAction(
-                  name: 'Test room',
-                  activator: testShortcut,
-                  invoke: () {
-                    context.pushWidgetBuilder(
-                      (_) => RoomTestingScreen(editorContext: editorContext),
-                    );
-                  },
-                ),
-                PerformableAction(
-                  name: 'Copy id',
-                  activator: copyExtraShortcut,
-                  invoke: () {
-                    final expression = literalString(room.id);
-                    return expression.toString().copyToClipboard();
-                  },
-                ),
-                PerformableAction(
-                  name: 'Delete',
-                  activator: deleteShortcut,
-                  invoke: () {
-                    _lastId = room.id;
-                    for (final otherRoom in rooms) {
-                      for (final object in otherRoom.editorRoom.objects) {
-                        for (final command in object.eventCommands.values) {
-                          if (command.door?.targetRoomId == room.id) {
-                            context.showMessage(
-                              message:
-                                  // ignore: lines_longer_than_80_chars
-                                  'You cannot delete ${room.editorRoom.name} because it is used as the target for the ${object.name} door.',
-                            );
-                            return;
-                          }
-                        }
-                      }
-                    }
-                    context.showConfirmMessage(
-                      message: 'Really delete ${editorRoom.name}?',
-                      title: confirmDelete,
-                      yesCallback: () {
-                        final newIndex = max(0, index - 1);
-                        if (newIndex < rooms.length) {
-                          _lastId = rooms[newIndex].id;
-                        } else {
-                          _lastId = null;
-                        }
-                        editorContext.file.deleteSync();
-                        setState(() {});
-                      },
-                      noLabel: 'Cancel',
-                      yesLabel: 'Delete',
-                    );
-                  },
-                ),
-              ],
-              autofocus: _lastId == null ? index == 0 : room.id == _lastId,
-              title: Text(editorRoom.name),
-              subtitle: musicReference == null
-                  ? null
-                  : SoundReferenceText(soundReference: musicReference),
-              onTap: () {
-                _lastId = room.id;
-                final engine = EditorEngine(
-                  playerCharacter: PlayerCharacter(
-                    id: newId(),
-                    name: 'Editor Player',
-                    locationId: room.id,
-                    x: editorRoom.x,
-                    y: editorRoom.y,
-                    statsMap: {},
-                  ),
-                );
-                context.pushWidgetBuilder(
-                  (_) => EditorContextScope(
-                    engine: engine,
-                    editorContext: editorContext,
-                    child: const RoomEditor(),
-                  ),
-                );
-              },
-            ),
-          );
+          return roomListTile(room);
         },
         itemCount: rooms.length,
         shrinkWrap: true,
@@ -478,6 +246,244 @@ class AngstromEditorState extends State<AngstromEditor> {
             child: const Icon(Icons.add),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Return a [ListTile] for [room].
+  Widget roomListTile(final LoadedRoom room) {
+    final rooms = widget.directory.rooms.toList();
+    final index = rooms.indexOf(room);
+    final editorRoom = room.editorRoom;
+    final editorContext = EditorContext(
+      room: room,
+      getSound: getSound,
+      newId: newId,
+      footsteps: widget.footsteps,
+      musicSoundPaths: widget.musicSoundPaths,
+      ambianceSoundPaths: widget.ambianceSoundPaths,
+      doorSounds: widget.doorSoundPaths,
+      wallAttenuation: widget.wallAttenuation,
+      wallFactor: widget.wallFactor,
+      onExamineObject: widget.onExamineObject,
+      getExamineObjectDistance: widget.getExamineObjectDistance,
+      getExamineObjectOrdering: widget.getExamineObjectOrdering,
+      onNoRoomObjects: widget.onNoRoomObjects,
+      engineCommands: engineCommands,
+      callEngineCommand: widget.callEngineCommand,
+    );
+    final musicReference = editorRoom.music;
+    final sound = musicReference == null
+        ? null
+        : getSound(
+            soundReference: musicReference,
+            destroy: false,
+            loadMode: LoadMode.disk,
+            looping: true,
+          );
+    return MaybePlaySoundSemantics(
+      sound: sound,
+      child: PerformableActionsListTile(
+        actions: [
+          PerformableAction(
+            name: 'Rename',
+            activator: renameShortcut,
+            invoke: () {
+              _lastId = room.id;
+              context.pushWidgetBuilder(
+                (final innerContext) => GetText(
+                  onDone: (final value) {
+                    innerContext.pop();
+                    editorRoom.name = value;
+                    editorContext.save();
+                    final newFilename = path.join(
+                      widget.directory.path,
+                      '${value.snakeCase}.json',
+                    );
+                    final newRoomId = newFilename.replaceAll(
+                      Platform.pathSeparator,
+                      '/',
+                    );
+                    editorContext.file.renameSync(newFilename);
+                    for (final otherRoom in rooms) {
+                      final editorRoom = otherRoom.editorRoom;
+                      for (final command in [
+                        ...editorRoom.eventCommands.values,
+                        for (final surface in editorRoom.surfaces)
+                          ...surface.eventCommands.values,
+                        for (final object in editorRoom.objects)
+                          ...object.eventCommands.values,
+                      ]) {
+                        final door = command.door;
+                        if (door != null && door.targetRoomId == room.id) {
+                          door.targetRoomId = newRoomId;
+                          EditorContext(
+                            room: otherRoom,
+                            getSound: getSound,
+                            newId: newId,
+                            footsteps: widget.footsteps,
+                            musicSoundPaths: widget.musicSoundPaths,
+                            ambianceSoundPaths: widget.ambianceSoundPaths,
+                            doorSounds: widget.doorSoundPaths,
+                            wallAttenuation: widget.wallAttenuation,
+                            wallFactor: widget.wallFactor,
+                            onExamineObject: widget.onExamineObject,
+                            getExamineObjectDistance:
+                                widget.getExamineObjectDistance,
+                            getExamineObjectOrdering:
+                                widget.getExamineObjectOrdering,
+                            onNoRoomObjects: widget.onNoRoomObjects,
+                            engineCommands: engineCommands,
+                            callEngineCommand: widget.callEngineCommand,
+                          ).save();
+                        }
+                      }
+                    }
+                    setState(() {});
+                  },
+                  labelText: 'Name',
+                  text: editorRoom.name,
+                  title: 'Rename room',
+                ),
+              );
+            },
+          ),
+          if (musicReference == null) ...[
+            PerformableAction(
+              name: 'Set music',
+              activator: editMusicShortcut,
+              invoke: () {
+                _lastId = room.id;
+                context.pushWidgetBuilder(
+                  (_) => SelectSoundScreen(
+                    soundPaths: widget.musicSoundPaths,
+                    getSound: getSound,
+                    setSound: (final value) {
+                      editorRoom.music = SoundReference(
+                        path: value,
+                        volume: musicReference?.volume ?? 0.7,
+                      );
+                      editorContext.save();
+                      setState(() {});
+                    },
+                    looping: true,
+                    soundPath: musicReference?.path,
+                    title: 'Select Music',
+                    volume: musicReference?.volume ?? 0.7,
+                  ),
+                );
+              },
+            ),
+          ] else ...[
+            ...SoundReferenceVolumeActions(
+              soundReference: musicReference,
+              onChange: (final value) {
+                _lastId = room.id;
+                editorRoom.music = value;
+                editorContext.save();
+                setState(() {});
+              },
+            ).getActions(context),
+            PerformableAction(
+              name: 'Remove music',
+              activator: editMusicShortcut,
+              invoke: () {
+                _lastId = room.id;
+                editorRoom.music = null;
+                editorContext.save();
+                setState(() {});
+              },
+            ),
+          ],
+          ...EventCommandsPerformableActions(
+            editorContext: editorContext,
+            events: [AngstromEventType.onEnter, AngstromEventType.onExit],
+            map: editorRoom.eventCommands,
+            save: () {
+              editorContext.save();
+              setState(() {});
+            },
+          ).getActions(context),
+          PerformableAction(
+            name: 'Test room',
+            activator: testShortcut,
+            invoke: () {
+              context.pushWidgetBuilder(
+                (_) => RoomTestingScreen(editorContext: editorContext),
+              );
+            },
+          ),
+          PerformableAction(
+            name: 'Copy id',
+            activator: copyExtraShortcut,
+            invoke: () {
+              final expression = literalString(room.id);
+              return expression.toString().copyToClipboard();
+            },
+          ),
+          PerformableAction(
+            name: 'Delete',
+            activator: deleteShortcut,
+            invoke: () {
+              _lastId = room.id;
+              for (final otherRoom in rooms) {
+                for (final object in otherRoom.editorRoom.objects) {
+                  for (final command in object.eventCommands.values) {
+                    if (command.door?.targetRoomId == room.id) {
+                      context.showMessage(
+                        message:
+                            // ignore: lines_longer_than_80_chars
+                            'You cannot delete ${room.editorRoom.name} because it is used as the target for the ${object.name} door.',
+                      );
+                      return;
+                    }
+                  }
+                }
+              }
+              context.showConfirmMessage(
+                message: 'Really delete ${editorRoom.name}?',
+                title: confirmDelete,
+                yesCallback: () {
+                  final newIndex = max(0, index - 1);
+                  if (newIndex < rooms.length) {
+                    _lastId = rooms[newIndex].id;
+                  } else {
+                    _lastId = null;
+                  }
+                  editorContext.file.deleteSync();
+                  setState(() {});
+                },
+                noLabel: 'Cancel',
+                yesLabel: 'Delete',
+              );
+            },
+          ),
+        ],
+        autofocus: _lastId == null ? index == 0 : room.id == _lastId,
+        title: Text(editorRoom.name),
+        subtitle: musicReference == null
+            ? null
+            : SoundReferenceText(soundReference: musicReference),
+        onTap: () {
+          _lastId = room.id;
+          final engine = EditorEngine(
+            playerCharacter: PlayerCharacter(
+              id: newId(),
+              name: 'Editor Player',
+              locationId: room.id,
+              x: editorRoom.x,
+              y: editorRoom.y,
+              statsMap: {},
+            ),
+          );
+          context.pushWidgetBuilder(
+            (_) => EditorContextScope(
+              engine: engine,
+              editorContext: editorContext,
+              child: const RoomEditor(),
+            ),
+          );
+        },
       ),
     );
   }
@@ -601,6 +607,18 @@ class AngstromEditorState extends State<AngstromEditor> {
 
   /// Create a new room.
   void _newRoom() {
+    final rooms = widget.directory.rooms;
+    final roomNames = rooms.map((final r) => r.editorRoom.name);
+    int? number;
+    String name;
+    do {
+      final buffer = StringBuffer('Untitled Room');
+      if (number != null) {
+        buffer.write(' $number');
+      }
+      name = buffer.toString();
+      number = (number ?? 1) + 1;
+    } while (roomNames.contains(name));
     final room = EditorRoom(
       surfaces: [
         EditorRoomSurface(
@@ -611,19 +629,16 @@ class AngstromEditorState extends State<AngstromEditor> {
         ),
       ],
       objects: [],
+      name: name,
     );
-    final now = DateTime.now();
-    final month = now.month.toString().padLeft(2, '0');
-    final day = now.day.toString().padLeft(2, '0');
-    final hour = now.hour.toString().padLeft(2, '0');
-    final minute = now.minute.toString().padLeft(2, '0');
-    final second = now.second.toString().padLeft(2, '0');
-    final id = 'room_${now.year}$month$day$hour$minute$second';
+    final id = room.name.camelCase;
     final file = File(
       path.join(widget.directory.path, '$id$roomFileExtension'),
     );
     final source = encoder.convert(room.toJson());
     file.writeAsStringSync(source);
-    setState(() {});
+    setState(() {
+      _lastId = file.path.replaceAll(r'\', '/');
+    });
   }
 }
