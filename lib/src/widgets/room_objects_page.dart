@@ -1,16 +1,23 @@
 import 'package:angstrom_editor/angstrom_editor.dart';
 import 'package:backstreets_widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_audio_games/flutter_audio_games.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
 
 /// The room objects page.
-class RoomObjectsPage extends StatelessWidget {
+class RoomObjectsPage extends StatefulWidget {
   /// Create an instance.
   const RoomObjectsPage({required this.onChange, super.key});
 
   /// The function to call when a surface has been edited.
   final VoidCallback onChange;
+
+  @override
+  State<RoomObjectsPage> createState() => RoomObjectsPageState();
+}
+
+/// State for [RoomObjectsPage].
+class RoomObjectsPageState extends State<RoomObjectsPage> {
+  /// The ID of the object which was last touched.
+  String? _lastId;
 
   /// Build the widget.
   @override
@@ -24,22 +31,13 @@ class RoomObjectsPage extends StatelessWidget {
     return ListView.builder(
       itemBuilder: (final context, final index) {
         final object = objects[index];
-        final ambiance = object.ambiance;
-        final sound = ambiance == null
-            ? null
-            : editorContext.getSound(
-                soundReference: ambiance,
-                destroy: false,
-                loadMode: LoadMode.disk,
-                looping: true,
-              );
-        return MaybePlaySoundSemantics(
-          sound: sound,
-          child: RoomObjectListTile(
-            object: object,
-            onChange: onChange,
-            autofocus: index == 0,
-          ),
+        return RoomObjectListTile(
+          autofocus: _lastId == null ? index == 0 : object.id == _lastId,
+          object: object,
+          onChange: () {
+            _lastId = object.id;
+            widget.onChange();
+          },
         );
       },
       itemCount: objects.length,

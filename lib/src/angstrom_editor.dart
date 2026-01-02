@@ -149,8 +149,8 @@ class AngstromEditorState extends State<AngstromEditor> {
   /// The directory where code should be written.
   late final Directory codeDirectory;
 
-  /// The last index to be clicked.
-  late int _lastIndex;
+  /// The ID of the last room to be touched.
+  String? _lastId;
 
   /// The UUID generator to use.
   late final Uuid uuid;
@@ -163,7 +163,6 @@ class AngstromEditorState extends State<AngstromEditor> {
   void initState() {
     super.initState();
     codeDirectory = Directory(widget.codeDirectoryPath);
-    _lastIndex = 0;
     uuid = const Uuid();
   }
 
@@ -230,7 +229,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                   name: 'Rename',
                   activator: renameShortcut,
                   invoke: () {
-                    _lastIndex = index;
+                    _lastId = room.id;
                     context.pushWidgetBuilder(
                       (final innerContext) => GetText(
                         onDone: (final value) {
@@ -295,7 +294,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                     name: 'Set music',
                     activator: editMusicShortcut,
                     invoke: () {
-                      _lastIndex = index;
+                      _lastId = room.id;
                       context.pushWidgetBuilder(
                         (_) => SelectSoundScreen(
                           soundPaths: widget.musicSoundPaths,
@@ -320,7 +319,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                   ...SoundReferenceVolumeActions(
                     soundReference: musicReference,
                     onChange: (final value) {
-                      _lastIndex = index;
+                      _lastId = room.id;
                       editorRoom.music = value;
                       editorContext.save();
                       setState(() {});
@@ -330,7 +329,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                     name: 'Remove music',
                     activator: editMusicShortcut,
                     invoke: () {
-                      _lastIndex = index;
+                      _lastId = room.id;
                       editorRoom.music = null;
                       editorContext.save();
                       setState(() {});
@@ -367,7 +366,7 @@ class AngstromEditorState extends State<AngstromEditor> {
                   name: 'Delete',
                   activator: deleteShortcut,
                   invoke: () {
-                    _lastIndex = index;
+                    _lastId = room.id;
                     for (final otherRoom in rooms) {
                       for (final object in otherRoom.editorRoom.objects) {
                         for (final command in object.eventCommands.values) {
@@ -386,7 +385,12 @@ class AngstromEditorState extends State<AngstromEditor> {
                       message: 'Really delete ${editorRoom.name}?',
                       title: confirmDelete,
                       yesCallback: () {
-                        _lastIndex = max(0, _lastIndex - 1);
+                        final newIndex = max(0, index - 1);
+                        if (newIndex < rooms.length) {
+                          _lastId = rooms[newIndex].id;
+                        } else {
+                          _lastId = null;
+                        }
                         editorContext.file.deleteSync();
                         setState(() {});
                       },
@@ -396,13 +400,13 @@ class AngstromEditorState extends State<AngstromEditor> {
                   },
                 ),
               ],
-              autofocus: index == _lastIndex,
+              autofocus: _lastId == null ? index == 0 : room.id == _lastId,
               title: Text(editorRoom.name),
               subtitle: musicReference == null
                   ? null
                   : SoundReferenceText(soundReference: musicReference),
               onTap: () {
-                _lastIndex = index;
+                _lastId = room.id;
                 final engine = EditorEngine(
                   playerCharacter: PlayerCharacter(
                     id: newId(),

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4
+
+- Try and save focus when editing rooms, surfaces, and objects.
+
 ## 0.7.3
 
 - Added a link to the template repository.
