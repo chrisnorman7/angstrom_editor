@@ -232,6 +232,10 @@ class EditorCodeGenerator {
 
   /// Write code for rooms and surfaces.
   Iterable<RoomCode> _writeRooms() sync* {
+    for (final file
+        in codeDirectory.listSync(recursive: true).whereType<File>()) {
+      file.deleteSync(recursive: true);
+    }
     for (final room in rooms) {
       final emitter = DartEmitter.scoped();
       final allocate = emitter.allocator.allocate;

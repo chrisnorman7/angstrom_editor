@@ -3,6 +3,8 @@
 ## 0.7.4
 
 - Try and save focus when editing rooms, surfaces, and objects.
+- Give new rooms filenames which match their actual names.
+- Clear all files from the rooms directory before generating code.
 
 ## 0.7.3
 
