@@ -281,6 +281,8 @@ class AngstromEditorState extends State<AngstromEditor> {
             loadMode: LoadMode.disk,
             looping: true,
           );
+    final autofocus = _lastId == null ? index == 0 : room.id == _lastId;
+    print('${editorRoom.name}: $autofocus ($_lastId)');
     return MaybePlaySoundSemantics(
       sound: sound,
       child: PerformableActionsListTile(
@@ -339,7 +341,9 @@ class AngstromEditorState extends State<AngstromEditor> {
                         }
                       }
                     }
-                    setState(() {});
+                    setState(() {
+                      _lastId = newRoomId;
+                    });
                   },
                   labelText: 'Name',
                   text: editorRoom.name,
@@ -459,7 +463,7 @@ class AngstromEditorState extends State<AngstromEditor> {
             },
           ),
         ],
-        autofocus: _lastId == null ? index == 0 : room.id == _lastId,
+        autofocus: autofocus,
         title: Text(editorRoom.name),
         subtitle: musicReference == null
             ? null
