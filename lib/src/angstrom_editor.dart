@@ -282,7 +282,6 @@ class AngstromEditorState extends State<AngstromEditor> {
             looping: true,
           );
     final autofocus = _lastId == null ? index == 0 : room.id == _lastId;
-    print('${editorRoom.name}: $autofocus ($_lastId)');
     return MaybePlaySoundSemantics(
       sound: sound,
       child: PerformableActionsListTile(

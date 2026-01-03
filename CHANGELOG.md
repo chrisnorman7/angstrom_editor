@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5
+
+-Try and preserve focus when renaming rooms.
+
 ## 0.7.4
 
 - Try and save focus when editing rooms, surfaces, and objects.
