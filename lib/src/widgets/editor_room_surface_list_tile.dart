@@ -23,7 +23,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
   final String surfaceId;
 
   /// The function to call when the surface has changed.
-  final VoidCallback onChange;
+  final ValueChanged<EditorRoomSurface?> onChange;
 
   /// Whether the [ListTile] should be autofocused.
   final bool autofocus;
@@ -61,7 +61,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                   onDone: (final value) {
                     context.pop();
                     surface.name = value;
-                    onChange();
+                    onChange(surface);
                   },
                   labelText: 'Name',
                   text: surface.name,
@@ -88,7 +88,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                   }
                   surface.contactSounds.clear();
                   surface.contactSounds.addAll(footsteps.soundPaths);
-                  onChange();
+                  onChange(surface);
                 },
               );
             }),
@@ -103,7 +103,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                       surface.ambiance = value.asSoundReference(
                         volume: ambiance?.volume ?? 0.7,
                       );
-                      onChange();
+                      onChange(surface);
                     },
                     looping: true,
                     soundPath: ambiance?.path,
@@ -122,7 +122,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                       surface.ambiance = value.asSoundReference(
                         volume: ambiance.volume,
                       );
-                      onChange();
+                      onChange(surface);
                     },
                     looping: true,
                     soundPath: ambiance.path,
@@ -139,7 +139,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                       surface.ambiance = ambiance.path.asSoundReference(
                         volume: value,
                       );
-                      onChange();
+                      onChange(surface);
                     },
                   ),
                 ),
@@ -150,7 +150,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
               checked: surface.isWall,
               invoke: () {
                 surface.isWall = !surface.isWall;
-                onChange();
+                onChange(surface);
               },
             ),
             ...EventCommandsPerformableActions(
@@ -161,7 +161,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                 AngstromEventType.onExit,
               ],
               map: surface.eventCommands,
-              save: onChange,
+              save: () => onChange(surface),
             ).getActions(context),
             PerformableAction(
               name: 'delete',
@@ -189,7 +189,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
                         (final s) => s.id == surface.id,
                       );
                       editorContext.save();
-                      onChange();
+                      onChange(null);
                     },
                   );
                 }

@@ -31,12 +31,7 @@ class _RoomEditorState extends State<RoomEditor> {
             icon: const Icon(Icons.list),
             child: CommonShortcuts(
               newCallback: _newSurface,
-              child: RoomSurfacesPage(
-                onChange: () {
-                  editorContext.save();
-                  setState(() {});
-                },
-              ),
+              child: RoomSurfacesPage(onChange: editorContext.save),
             ),
             floatingActionButton: NewButton(
               onPressed: _newSurface,
@@ -49,12 +44,7 @@ class _RoomEditorState extends State<RoomEditor> {
             child: CommonShortcuts(
               child: CommonShortcuts(
                 newCallback: _newObject,
-                child: RoomObjectsPage(
-                  onChange: () {
-                    editorContext.save();
-                    setState(() {});
-                  },
-                ),
+                child: RoomObjectsPage(onChange: editorContext.save),
               ),
             ),
             floatingActionButton: NewButton(

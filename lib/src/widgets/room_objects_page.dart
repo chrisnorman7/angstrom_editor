@@ -28,15 +28,21 @@ class RoomObjectsPageState extends State<RoomObjectsPage> {
     if (objects.isEmpty) {
       return const CenterText(text: 'There are no objects in this room.');
     }
+    objects.sort(
+      (final a, final b) =>
+          a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
     return ListView.builder(
       itemBuilder: (final context, final index) {
         final object = objects[index];
+        final autofocus = _lastId == null ? index == 0 : object.id == _lastId;
         return RoomObjectListTile(
-          autofocus: _lastId == null ? index == 0 : object.id == _lastId,
+          autofocus: autofocus,
           object: object,
-          onChange: () {
-            _lastId = object.id;
+          onChange: (final newObject) {
+            _lastId = newObject?.id;
             widget.onChange();
+            setState(() {});
           },
         );
       },

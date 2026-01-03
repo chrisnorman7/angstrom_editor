@@ -22,16 +22,22 @@ class RoomSurfacesPageState extends State<RoomSurfacesPage> {
   @override
   Widget build(final BuildContext context) {
     final room = context.editorContext.room;
-    final surfaces = room.editorRoom.surfaces;
+    final surfaces = room.editorRoom.surfaces
+      ..sort(
+        (final a, final b) =>
+            a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
     return ListView.builder(
       itemBuilder: (final context, final index) {
         final surface = surfaces[index];
+        final autofocus = _lastId == null ? index == 0 : surface.id == _lastId;
         return EditorRoomSurfaceListTile(
-          autofocus: _lastId == null ? index == 0 : surface.id == _lastId,
+          autofocus: autofocus,
           surfaceId: surface.id,
-          onChange: () {
-            _lastId = surface.id;
+          onChange: (final newSurface) {
+            _lastId = newSurface?.id;
             widget.onChange();
+            setState(() {});
           },
         );
       },

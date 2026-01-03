@@ -22,7 +22,7 @@ class RoomObjectListTile extends StatelessWidget {
   final EditorRoomObject object;
 
   /// The function to call when [object] changes.
-  final VoidCallback onChange;
+  final ValueChanged<EditorRoomObject?> onChange;
 
   /// Whether the [ListTile] should be autofocused.
   final bool autofocus;
@@ -59,7 +59,7 @@ class RoomObjectListTile extends StatelessWidget {
                 onDone: (final value) {
                   context.pop();
                   object.name = value;
-                  onChange();
+                  onChange(object);
                 },
                 labelText: 'Name',
                 text: object.name,
@@ -76,7 +76,7 @@ class RoomObjectListTile extends StatelessWidget {
                   getSound: editorContext.getSound,
                   setSound: (final value) {
                     object.ambiance = value.asSoundReference();
-                    onChange();
+                    onChange(object);
                   },
                   looping: true,
                 ),
@@ -93,7 +93,7 @@ class RoomObjectListTile extends StatelessWidget {
                     object.ambiance = value.asSoundReference(
                       volume: ambiance.volume,
                     );
-                    onChange();
+                    onChange(object);
                   },
                   looping: true,
                   soundPath: ambiance.path,
@@ -105,7 +105,7 @@ class RoomObjectListTile extends StatelessWidget {
               soundReference: ambiance,
               onChange: (final value) {
                 object.ambiance = value;
-                onChange();
+                onChange(object);
               },
               volumeDownShortcut: null,
               volumeUpShortcut: null,
@@ -116,7 +116,7 @@ class RoomObjectListTile extends StatelessWidget {
             activator: moveUpShortcut,
             invoke: () {
               object.y += 1;
-              onChange();
+              onChange(object);
             },
           ),
           PerformableAction(
@@ -124,7 +124,7 @@ class RoomObjectListTile extends StatelessWidget {
             activator: moveRightShortcut,
             invoke: () {
               object.x += 1;
-              onChange();
+              onChange(object);
             },
           ),
           PerformableAction(
@@ -132,7 +132,7 @@ class RoomObjectListTile extends StatelessWidget {
             activator: moveDownShortcut,
             invoke: () {
               object.y -= 1;
-              onChange();
+              onChange(object);
             },
           ),
           PerformableAction(
@@ -140,7 +140,7 @@ class RoomObjectListTile extends StatelessWidget {
             activator: moveLeftShortcut,
             invoke: () {
               object.x -= 1;
-              onChange();
+              onChange(object);
             },
           ),
           ...EventCommandsPerformableActions(
@@ -153,7 +153,7 @@ class RoomObjectListTile extends StatelessWidget {
             map: object.eventCommands,
             save: () {
               editorContext.save();
-              onChange();
+              onChange(object);
             },
           ).getActions(context),
           PerformableAction(
@@ -218,7 +218,7 @@ class RoomObjectListTile extends StatelessWidget {
                   editorContext.room.editorRoom.objects.removeWhere(
                     (final o) => o.id == object.id,
                   );
-                  onChange();
+                  onChange(null);
                 },
                 title: confirmDelete,
                 yesLabel: 'Delete',
