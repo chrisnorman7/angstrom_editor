@@ -229,7 +229,13 @@ class EditorRoomObjectListTile extends StatelessWidget {
         title: Text(object.name),
         subtitle: Text(buffer.toString()),
         autofocus: autofocus,
-        onTap: () {},
+        onTap: () => context.pushWidgetBuilder(
+          (_) => EditEditorRoomObjectScreen(
+            editorContext: editorContext,
+            object: object,
+            onChange: onChange,
+          ),
+        ),
       ),
     );
   }

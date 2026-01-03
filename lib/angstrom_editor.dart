@@ -32,6 +32,7 @@ export 'src/screens/create_sound_reference_screen.dart';
 export 'src/screens/edit_comment_screen.dart';
 export 'src/screens/edit_door_screen.dart';
 export 'src/screens/edit_editor_event_command_screen.dart';
+export 'src/screens/edit_editor_room_object_screen.dart';
 export 'src/screens/edit_editor_room_surface_screen.dart';
 export 'src/screens/edit_volume_screen.dart';
 export 'src/screens/engine_commands_screen.dart';
