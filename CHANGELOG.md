@@ -2,7 +2,8 @@
 
 ## 0.7.5
 
--Try and preserve focus when renaming rooms.
+- Try and preserve focus when renaming rooms.
+- Allow editing surfaces and objects in their own screen.
 
 ## 0.7.4
 
