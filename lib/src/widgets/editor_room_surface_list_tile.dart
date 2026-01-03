@@ -38,6 +38,7 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
     );
     final ambiance = surface.ambiance;
     return FootstepsPlaySoundSemantics(
+      editorContext: editorContext,
       key: ValueKey(surface.contactSounds.join('|')),
       footstepSounds: surface.contactSounds,
       interval: surface.moveInterval,
@@ -201,7 +202,13 @@ class EditorRoomSurfaceListTile extends StatelessWidget {
           subtitle: ambiance == null
               ? null
               : SoundReferenceText(soundReference: ambiance),
-          onTap: () {},
+          onTap: () => context.pushWidgetBuilder(
+            (_) => EditEditorRoomSurfaceScreen(
+              editorContext: editorContext,
+              surface: surface,
+              onChange: onChange,
+            ),
+          ),
         ),
       ),
     );

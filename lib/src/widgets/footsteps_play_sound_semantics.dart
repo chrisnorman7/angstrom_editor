@@ -8,12 +8,16 @@ import 'package:flutter_audio_games/flutter_audio_games.dart';
 class FootstepsPlaySoundSemantics extends StatefulWidget {
   /// Create an instance.
   const FootstepsPlaySoundSemantics({
+    required this.editorContext,
     required this.footstepSounds,
     required this.interval,
     required this.child,
     this.volume = 0.7,
     super.key,
   });
+
+  /// The editor context to use.
+  final EditorContext editorContext;
 
   /// The sounds to play.
   final List<String> footstepSounds;
@@ -47,7 +51,7 @@ class _FootstepsPlaySoundSemanticsState
   /// Build the widget.
   @override
   Widget build(final BuildContext context) {
-    final editorContext = context.editorContext;
+    final editorContext = widget.editorContext;
     final sounds = widget.footstepSounds
         .map(
           (final path) => editorContext.getSound(
