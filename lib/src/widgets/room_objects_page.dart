@@ -36,7 +36,7 @@ class RoomObjectsPageState extends State<RoomObjectsPage> {
       itemBuilder: (final context, final index) {
         final object = objects[index];
         final autofocus = _lastId == null ? index == 0 : object.id == _lastId;
-        return RoomObjectListTile(
+        return EditorRoomObjectListTile(
           autofocus: autofocus,
           object: object,
           onChange: (final newObject) {

@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_audio_games/flutter_audio_games.dart';
 
 /// A [ListTile] for editing a room [object].
-class RoomObjectListTile extends StatelessWidget {
+class EditorRoomObjectListTile extends StatelessWidget {
   /// Create an instance.
-  const RoomObjectListTile({
+  const EditorRoomObjectListTile({
     required this.object,
     required this.onChange,
     this.autofocus = false,
